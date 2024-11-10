@@ -62,6 +62,10 @@ const ReportPageContent = () => {
       return;
     }
     const fetchData = async () => {
+      if (!selectedIndustry) {
+        setErrorMessage("業界情報が指定されていません。");
+        return;
+      }
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/summarize?industry=${selectedIndustry}`);
         if (!response.ok) {
