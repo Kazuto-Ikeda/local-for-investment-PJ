@@ -38,7 +38,7 @@ const IndexPage = () => {
     setSmallCategory("");
     setShowMiddlePopup(true);
     setShowSmallPopup(false);
-    setMiddleCategories(Object.keys(industryHierarchy[category] || {}));
+    setMiddleCategories(Object.keys(industryHierarchy[category as keyof typeof industryHierarchy] || {}));
   };
 
   const handleMiddleCategoryChange = (category: string) => {
