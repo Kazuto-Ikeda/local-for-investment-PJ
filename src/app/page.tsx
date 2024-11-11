@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, } from "react";
+import { useState, useEffect} from "react";
 import Link from "next/link"; // Linkコンポーネントを使う
 import industryHierarchy from "./industry_hierarchy.json";
 
@@ -38,7 +38,7 @@ const IndexPage = () => {
     setSmallCategory("");
     setShowMiddlePopup(true);
     setShowSmallPopup(false);
-    setMiddleCategories(Object.keys(industryHierarchy[category as keyof typeof industryHierarchy] || {}));
+    setMiddleCategories(Object.keys(industryHierarchy[category] || {}));
   };
 
   const handleMiddleCategoryChange = (category: string) => {
@@ -46,9 +46,7 @@ const IndexPage = () => {
     setSmallCategory("");
     setShowMiddlePopup(false);
     setShowSmallPopup(true);
-    setSmallCategories(
-      (industryHierarchy[majorCategory as keyof typeof industryHierarchy] as { [key: string]: string[] })[category] || []
-    );
+    setSmallCategories(industryHierarchy[majorCategory][category] || []);
   };
 
   const handleSmallCategoryChange = (category: string) => {
@@ -195,6 +193,7 @@ const IndexPage = () => {
             </ul>
           </div>
 
+
           {/* 売上、EBITDAなどの入力フィールド */}
           <div>
             <label className="block mb-4">
@@ -202,7 +201,7 @@ const IndexPage = () => {
               <input
                 type="text"
                 value={revenueCurrent}
-                onChange={(e) => handleRevenueChange(e.target.value, 'additionalArgument')}
+                onChange={(e) => handleRevenueCurrentChange(e.target.value)}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 100"
               />
