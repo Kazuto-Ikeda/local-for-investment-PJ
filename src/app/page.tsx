@@ -202,7 +202,7 @@ const IndexPage = () => {
               <input
                 type="text"
                 value={revenueCurrent}
-                onChange={(e) => handleRevenueChange(e.target.value)}
+                onChange={(e) => handleRevenueChange(e.target.value, 'additionalArgument')}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 100"
               />
