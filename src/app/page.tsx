@@ -46,7 +46,9 @@ const IndexPage = () => {
     setSmallCategory("");
     setShowMiddlePopup(false);
     setShowSmallPopup(true);
-    setSmallCategories(industryHierarchy[majorCategory as keyof typeof industryHierarchy][category as keyof typeof industryHierarchy[majorCategory]] || []);
+    setSmallCategories(
+      (industryHierarchy[majorCategory as keyof typeof industryHierarchy] as { [key: string]: string[] })[category] || []
+    );
   };
 
   const handleSmallCategoryChange = (category: string) => {
