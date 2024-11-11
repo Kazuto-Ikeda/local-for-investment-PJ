@@ -69,6 +69,36 @@ const handleMiddleCategoryChange = (category: string) => {
 
   console.log("Selected Industry:", smallCategory);
 
+  const handleRevenueCurrentChange = (value: string) => {
+    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
+    setRevenueCurrent(cleanedValue); // 状態を更新
+  };
+
+  const handleRevenueForecastChange = (value: string) => {
+    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
+    setRevenueForecast(cleanedValue); // 状態を更新
+  };
+
+  const handleEbitdaCurrentChange = (value: string) => {
+    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
+    setEbitdaCurrent(cleanedValue); // 状態を更新
+  };
+
+  const handleEbitdaForecastChange = (value: string) => {
+    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
+    setEbitdaForecast(cleanedValue); // 状態を更新
+  };
+
+  const handleNetDebtChange = (value: string) => {
+    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
+    setNetDebt(cleanedValue); // 状態を更新
+  };
+
+  const handleEquityValueChange = (value: string) => {
+    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
+    setEquityValue(cleanedValue); // 状態を更新
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
