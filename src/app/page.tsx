@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import Link from "next/link"; // Linkコンポーネントを使う
+import industryHierarchy from "./industry_hierarchy.json";
 
 const IndexPage = () => {
   const [companyName, setCompanyName] = useState("");
@@ -18,75 +19,50 @@ const IndexPage = () => {
   const [smallCategory, setSmallCategory] = useState("");
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
 
+  const [middleCategories, setMiddleCategories] = useState<string[]>([]);
+  const [smallCategories, setSmallCategories] = useState<string[]>([]);
   const [showMiddlePopup, setShowMiddlePopup] = useState(false);
   const [showSmallPopup, setShowSmallPopup] = useState(false);
   const [headOfficeLocation, setHeadOfficeLocation] = useState("");
 
-  const majorCategories: string[] = ["素材・素材加工品", "機械・電気製品", "輸送機械", "食品", "消費財", "小売", "運輸サービス"];
+  // Major Category (大分類) のデータ取得
+  const majorCategories = Object.keys(industryHierarchy);
 
-  const middleCategories: Record<string, string[]> = {
-    "食品": ["農業", "畜産・水産業", "食品加工", "飲料・たばこ製造"]
-  };
-
-  const smallCategories: Record<string, string[]> = {
-    "食品加工": ["製糖", "製油", "乳業・乳製品", "水産加工品", "製パン", "菓子", "調味料類", "健康食品"]
-  };
-
-  const handleRevenueCurrentChange = (value: string) => {
-    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
-    setRevenueCurrent(cleanedValue); // 状態を更新
-  };
-
-  const handleRevenueForecastChange = (value: string) => {
-    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
-    setRevenueForecast(cleanedValue); // 状態を更新
-  };
-
-  const handleEbitdaCurrentChange = (value: string) => {
-    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
-    setEbitdaCurrent(cleanedValue); // 状態を更新
-  };
-
-  const handleEbitdaForecastChange = (value: string) => {
-    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
-    setEbitdaForecast(cleanedValue); // 状態を更新
-  };
-
-  const handleNetDebtChange = (value: string) => {
-    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
-    setNetDebt(cleanedValue); // 状態を更新
-  };
-
-  const handleEquityValueChange = (value: string) => {
-    const cleanedValue = value.replace(/,/g, ""); // カンマを削除
-    setEquityValue(cleanedValue); // 状態を更新
+  const handleRevenueChange = (value: string, setValue: (val: string) => void) => {
+    setValue(value.replace(/,/g, "")); // カンマを削除して値を設定
   };
 
   const handleMajorCategoryChange = (category: string) => {
     setMajorCategory(category);
-    setShowMiddlePopup(true);
     setMiddleCategory("");
     setSmallCategory("");
+    setShowMiddlePopup(true);
+    setShowSmallPopup(false);
+    setMiddleCategories(Object.keys(industryHierarchy[category] || {}));
   };
 
   const handleMiddleCategoryChange = (category: string) => {
     setMiddleCategory(category);
+    setSmallCategory("");
     setShowMiddlePopup(false);
-    if (category === "食品加工") {
-      setShowSmallPopup(true);
-    }
+    setShowSmallPopup(true);
+    setSmallCategories(industryHierarchy[majorCategory][category] || []);
   };
 
   const handleSmallCategoryChange = (category: string) => {
-    console.log("Setting smallCategory to:", category); // デバッグログ
-    const newIndustry = `${majorCategory} > ${middleCategory} > ${category}`;
-    setSelectedIndustries([newIndustry]); // 1つの業界のみを保存
     setSmallCategory(category);
     setShowSmallPopup(false);
+    const newIndustry = `${majorCategory} > ${middleCategory} > ${category}`;
+    setSelectedIndustries([newIndustry]); // 一つだけ選択
   };
-  
+
   const removeIndustry = (industry: string) => {
     setSelectedIndustries(selectedIndustries.filter(i => i !== industry));
+    setMajorCategory("");     // 大分類の選択を解除
+    setMiddleCategory("");    // 中分類の選択を解除
+    setSmallCategory("");     // 小分類の選択を解除
+    setMiddleCategories([]);  // 中分類リストをリセット
+    setSmallCategories([]);   // 小分類リストをリセット
   };
 
   console.log("Selected Industry:", smallCategory);
@@ -135,6 +111,7 @@ const IndexPage = () => {
             </label>
           </div>
 
+          {/* 大分類 */}
           <div className="col-span-2">
             <label className="block mb-4">
               <span className="text-gray-700">業界 - 大分類</span>
@@ -154,36 +131,51 @@ const IndexPage = () => {
             </label>
           </div>
 
-          {showMiddlePopup && (
-            <div className="col-span-2 popup bg-white p-4 shadow-lg rounded-lg">
-              <h2 className="text-lg font-bold">中分類を選択</h2>
-              {middleCategories[majorCategory]?.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => handleMiddleCategoryChange(category)}
-                  className="block p-2 bg-gray-200 rounded-md my-2"
-                >
-                  {category}
-                </button>
-              ))}
+          {/* 中分類 */}
+          {majorCategory && (
+            <div className="col-span-2">
+              <label className="block mb-4">
+                <span className="text-gray-700">業界 - 中分類</span>
+                <div className="mt-2 grid grid-cols-3 gap-4">
+                  {middleCategories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => handleMiddleCategoryChange(category)}
+                      className={`p-2 border rounded-md text-sm ${
+                        middleCategory === category ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </label>
             </div>
           )}
 
-          {showSmallPopup && (
-            <div className="col-span-2 popup bg-white p-4 shadow-lg rounded-lg">
-              <h2 className="text-lg font-bold">小分類を選択</h2>
-              {smallCategories[middleCategory]?.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => handleSmallCategoryChange(category)}
-                  className="block p-2 bg-gray-200 rounded-md my-2"
-                >
-                  {category}
-                </button>
-              ))}
+          {/* 小分類 */}
+          {middleCategory && (
+            <div className="col-span-2">
+              <label className="block mb-4">
+                <span className="text-gray-700">業界 - 小分類</span>
+                <div className="mt-2 grid grid-cols-3 gap-4">
+                  {smallCategories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => handleSmallCategoryChange(category)}
+                      className={`p-2 border rounded-md text-sm ${
+                        smallCategory === category ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </label>
             </div>
           )}
 
+          {/* 選択された業種 */}
           <div className="col-span-2">
             <span className="text-gray-700">選択された業種</span>
             <ul className="mt-2">
