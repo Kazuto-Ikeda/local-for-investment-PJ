@@ -38,16 +38,18 @@ const IndexPage = () => {
     setSmallCategory("");
     setShowMiddlePopup(true);
     setShowSmallPopup(false);
-    setMiddleCategories(Object.keys(industryHierarchy[category] || {}));
-  };
+    setMiddleCategories(Object.keys(industryHierarchy[category as keyof typeof industryHierarchy] || {}));
+};
 
-  const handleMiddleCategoryChange = (category: string) => {
-    setMiddleCategory(category);
-    setSmallCategory("");
-    setShowMiddlePopup(false);
-    setShowSmallPopup(true);
-    setSmallCategories(industryHierarchy[majorCategory][category] || []);
-  };
+const handleMiddleCategoryChange = (category: string) => {
+  setMiddleCategory(category);
+  setSmallCategory("");
+  setShowMiddlePopup(false);
+  setShowSmallPopup(true);
+  setSmallCategories(
+    (industryHierarchy[majorCategory as keyof typeof industryHierarchy] as { [key: string]: string[] })[category] || []
+  );
+};
 
   const handleSmallCategoryChange = (category: string) => {
     setSmallCategory(category);
