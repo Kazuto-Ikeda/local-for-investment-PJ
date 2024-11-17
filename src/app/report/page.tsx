@@ -43,26 +43,44 @@ const ReportPageContent = () => {
   const [industryData, setIndustryData] = useState<IndustryData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    if (!selectedIndustry) {
-      setErrorMessage("業界情報が指定されていません。");
-      return;
-    }
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/summarize?industry=${selectedIndustry}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch industry data.");
-        }
-        const data: IndustryData = await response.json();
-        setIndustryData(data);
-      } catch (error) {
-        setErrorMessage("業界データの取得に失敗しました。");
-      }
-    };
-    fetchData();
-  }, [selectedIndustry]);
+  const isMockMode = true; // モックモードを有効化するフラグ
 
+  useEffect(() => {
+    if (isMockMode) {
+      const mockIndustryData: IndustryData = {
+        current_situation: "現在の業界は安定した成長を遂げています。",
+        future_outlook: "将来的にはさらなる需要が見込まれます。",
+        investment_advantages: "市場規模が大きく、多様な顧客層があります。",
+        investment_disadvantages: "競合が多く、価格競争が激化しています。",
+        value_up_hypothesis: "DXにより効率化が図られ、利益率の向上が期待されます。",
+        industry_challenges: "規制対応が課題となっています。",
+        growth_drivers: "新興国市場の拡大が成長ドライバーとなっています。",
+        financial_analysis: "財務健全性が高く、収益性が良好です。",
+        ev_ebitda_median: "8.4倍",
+      };
+  
+      setIndustryData(mockIndustryData); // モックデータを設定
+    } else {
+      if (!selectedIndustry) {
+        setErrorMessage("業界情報が指定されていません。");
+        return;
+      }
+      const fetchData = async () => {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/summarize?industry=${selectedIndustry}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch industry data.");
+          }
+          const data: IndustryData = await response.json();
+          setIndustryData(data);
+        } catch (error) {
+          setErrorMessage("業界データの取得に失敗しました。");
+        }
+      };
+      fetchData();
+    }
+  }, [selectedIndustry]);
+  
   // テキスト出力処理
   const handleTextOutput = async () => {
     try {
