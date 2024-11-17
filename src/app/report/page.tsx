@@ -21,6 +21,26 @@ const ReportPageContent = () => {
   const companyName = searchParams ? searchParams.get("companyName") || "株式会社虎屋" : "株式会社虎屋";
   const selectedIndustry = searchParams.get("selectedIndustry");
 
+  // 売上、EBITDA、NetDebt、EquityValueの取得
+  const revenueCurrent = searchParams.get("revenueCurrent") || "0";
+  const revenueForecast = searchParams.get("revenueForecast") || "0";
+  const ebitdaCurrent = searchParams.get("ebitdaCurrent") || "0";
+  const ebitdaForecast = searchParams.get("ebitdaForecast") || "0";
+  const netDebtCurrent = searchParams.get("netDebtCurrent") || "0";
+  const netDebtForecast = searchParams.get("netDebtForecast") || "0";
+  const equityValueCurrent = searchParams.get("equityValueCurrent") || "0";
+  const equityValueForecast = searchParams.get("equityValueForecast") || "0";
+  const selectedIndustry = searchParams.get("selectedIndustry");
+
+  // EVの計算
+  const evCurrent = (parseFloat(netDebtCurrent) + parseFloat(equityValueCurrent)).toLocaleString();
+  const evForecast = (parseFloat(netDebtForecast) + parseFloat(equityValueForecast)).toLocaleString();
+
+  // エントリーマルチプルの計算
+  const entryMultipleCurrent = (parseFloat(evCurrent.replace(/,/g, "")) / parseFloat(ebitdaCurrent)).toFixed(1) + "x";
+  const entryMultipleForecast = (parseFloat(evForecast.replace(/,/g, "")) / parseFloat(ebitdaForecast)).toFixed(1) + "x";
+
+
   // 業界データのフェッチ
   const [industryData, setIndustryData] = useState<IndustryData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -44,6 +64,43 @@ const ReportPageContent = () => {
     };
     fetchData();
   }, [selectedIndustry]);
+
+
+  // テキスト出力処理
+  const handleTextOutput = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/generate-report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          companyName,
+          industry: selectedIndustry,
+          revenueCurrent,
+          revenueForecast,
+          ebitdaCurrent,
+          ebitdaForecast,
+          netDebtCurrent,
+          netDebtForecast,
+          equityValueCurrent,
+          equityValueForecast,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate report.");
+      }
+
+      const result = await response.json();
+      alert(`レポート生成が完了しました: ${result.message}`);
+    } catch (error) {
+      console.error("Error generating report:", error);
+      alert("レポート生成に失敗しました。");
+    }
+  };
+
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
