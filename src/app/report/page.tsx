@@ -50,25 +50,29 @@ const ReportPageContent = () => {
     financial_analysis: "財務分析について記入してください。",
   });
 
+  // モックデータ
+  const mockIndustryData: IndustryData = {
+    current_situation: "現在の業界は安定した成長を遂げています。",
+    future_outlook: "将来的にはさらなる需要が見込まれます。",
+    investment_advantages: "市場規模が大きく、多様な顧客層があります。",
+    investment_disadvantages: "競合が多く、価格競争が激化しています。",
+    value_up_hypothesis: "DXにより効率化が図られ、利益率の向上が期待されます。",
+    industry_challenges: "規制対応が課題となっています。",
+    growth_drivers: "新興国市場の拡大が成長ドライバーとなっています。",
+    financial_analysis: "財務健全性が高く、収益性が良好です。",
+    ev_ebitda_median: "8.4倍",
+  };
+
   // 業界データを取得するuseEffect
   useEffect(() => {
     if (!selectedIndustry) {
       setErrorMessage("業界情報が指定されていません。"); // 業界未指定の場合のエラー
       return;
     }
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/summarize?industry=${selectedIndustry}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch industry data."); // フェッチ失敗時のエラー
-        }
-        const data: IndustryData = await response.json();
-        setIndustryData(data); // 成功時にデータをステートに格納
-      } catch (error) {
-        setErrorMessage("業界データの取得に失敗しました。"); // エラー発生時
-      }
-    };
-    fetchData();
+
+    // モックモードとして、ダミーデータをセット
+    setIndustryData(mockIndustryData); // モックデータを使用
+    setErrorMessage(""); // エラーメッセージをクリア
   }, [selectedIndustry]);
 
   // トグル開閉の処理
