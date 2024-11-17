@@ -30,7 +30,6 @@ const ReportPageContent = () => {
   const netDebtForecast = searchParams.get("netDebtForecast") || "0";
   const equityValueCurrent = searchParams.get("equityValueCurrent") || "0";
   const equityValueForecast = searchParams.get("equityValueForecast") || "0";
-  const selectedIndustry = searchParams.get("selectedIndustry");
 
   // EVの計算
   const evCurrent = (parseFloat(netDebtCurrent) + parseFloat(equityValueCurrent)).toLocaleString();
@@ -39,7 +38,6 @@ const ReportPageContent = () => {
   // エントリーマルチプルの計算
   const entryMultipleCurrent = (parseFloat(evCurrent.replace(/,/g, "")) / parseFloat(ebitdaCurrent)).toFixed(1) + "x";
   const entryMultipleForecast = (parseFloat(evForecast.replace(/,/g, "")) / parseFloat(ebitdaForecast)).toFixed(1) + "x";
-
 
   // 業界データのフェッチ
   const [industryData, setIndustryData] = useState<IndustryData | null>(null);
@@ -64,7 +62,6 @@ const ReportPageContent = () => {
     };
     fetchData();
   }, [selectedIndustry]);
-
 
   // テキスト出力処理
   const handleTextOutput = async () => {
@@ -99,8 +96,6 @@ const ReportPageContent = () => {
       alert("レポート生成に失敗しました。");
     }
   };
-
-
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -147,7 +142,7 @@ const ReportPageContent = () => {
         <div className="text-center mt-6">
           <button
             className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
-            onClick={() => alert("テキスト出力処理が呼び出されました。")}
+            onClick={handleTextOutput}
           >
             テキスト出力
           </button>
