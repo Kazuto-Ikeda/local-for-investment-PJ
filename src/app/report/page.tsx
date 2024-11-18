@@ -92,20 +92,25 @@ const ReportPageContent = () => {
   
       const data = await response.json();
   
-      // 修正版: prevがnullの場合を考慮
-      setIndustryData((prev) =>
-        prev
-          ? {
-              ...prev,
-              [key]: data.summary || "", // 要約結果を更新
-            }
-          : { [key]: data.summary || "" } as IndustryData // prevがnullの場合の初期化
-      );
-    } catch (error) {
-      console.error(error);
-      alert("要約の再生成に失敗しました。");
-    }
-  };
+      setIndustryData((prev) => {
+        if (prev) {
+          // prevが存在する場合は展開して更新
+          return { ...prev, [key]: data.summary || "" };
+        } else {
+          // prevがnullの場合は新しいオブジェクトを作成
+          return {
+            current_situation: "",
+            future_outlook: "",
+            investment_advantages: "",
+            investment_disadvantages: "",
+            value_up_hypothesis: "",
+            industry_challenges: "",
+            growth_drivers: "",
+            financial_analysis: "",
+            [key]: data.summary || "", // 対象フィールドを上書き
+          };
+        }
+      });
 
   // 初回のモックデータ設定（モックモード）
   useEffect(() => {
