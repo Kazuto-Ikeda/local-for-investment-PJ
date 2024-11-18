@@ -12,8 +12,6 @@ interface IndustryData {
   value_up_hypothesis: string;
   industry_challenges: string;
   growth_drivers: string;
-  financial_analysis: string;
-  ev_ebitda_median?: string;
 }
 
 const ReportPageContent = () => {
