@@ -71,16 +71,36 @@ const ReportPageContent = () => {
     }
   };
 
-  // 再生成処理
-  const handleRegenerate = (key: string) => {
-    const prompt = prompts[key];
-    if (!prompt) {
-      alert("再生成プロンプトが未入力です。");
-      return;
+  const handleRegenerate = async (key: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/generate-summary`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt: prompts[key], // プロンプトを送信
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error("Failed to regenerate summary.");
+      }
+  
+      const data = await response.json();
+      setIndustryData((prev) => ({
+        ...prev,
+        [key]: data.summary || "", // 要約結果を更新（undefinedの可能性を排除）
+      })); 
+    } catch (error) {
+      console.error(error);
+      alert("要約の再生成に失敗しました。");
     }
-    fetchChatGPTSummary(key, prompt);
   };
-
+  
   // 初回のモックデータ設定（モックモード）
   useEffect(() => {
     if (!selectedIndustry) {
