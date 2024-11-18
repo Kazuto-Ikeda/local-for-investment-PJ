@@ -32,8 +32,6 @@ const ReportPageContent = () => {
     investment_disadvantages: "投資デメリットについて記入してください。",
     value_up_hypothesis: "DXによるバリューアップ仮説を記入してください。",
     industry_challenges: "業界の課題について記入してください。",
-    growth_drivers: "成長ドライバーについて記入してください。",
-    financial_analysis: "財務分析について記入してください。",
   });
 
   const revenueCurrent = searchParams.get("revenueCurrent") || "0";
@@ -63,8 +61,6 @@ const ReportPageContent = () => {
       value_up_hypothesis: "DXにより効率化が図られ、利益率の向上が期待されます。",
       industry_challenges: "規制対応が課題となっています。",
       growth_drivers: "新興国市場の拡大が成長ドライバーとなっています。",
-      financial_analysis: "財務健全性が高く、収益性が良好です。",
-      ev_ebitda_median: "8.4倍",
     };
 
     setIndustryData(mockData);
@@ -120,9 +116,38 @@ const ReportPageContent = () => {
               )}
             </div>
           ))}
+                  {/* ChatGPT＋SPEEDAレポート分析 */}
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT＋SPEEDA分析</h2>
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            <h2
+              className="text-xl font-bold text-gray-700 cursor-pointer"
+              onClick={() => setIsOpenIndustry(!isOpenIndustry)}
+            >
+              業界分析 {isOpenIndustry ? "▲" : "▼"}
+            </h2>
+          </div>
+          {/* トグルでの表示内容 */}
+          {isOpenIndustry && industryData && (
+            <div className="text-base text-gray-800 mt-4">
+              <strong>① 現状と将来の見立て</strong><br /><br />
+              <strong>現状</strong><br />
+              {industryData.current_situation}<br /><br />
+              <strong>将来の見立て</strong><br />
+              {industryData.future_outlook}<br /><br />
+              <strong>② 投資対象としてのメリットとデメリット</strong><br /><br />
+              <strong>メリット</strong><br />
+              {industryData.investment_advantages}<br /><br />
+              <strong>デメリット</strong><br />
+              {industryData.investment_disadvantages}<br /><br />
+              <strong>③ DX（デジタルトランスフォーメーション）によるバリューアップ</strong><br /><br />
+              <strong>DXによるバリューアップの可能性</strong><br />
+              {industryData.value_up_hypothesis}
+            </div>
+          )}
+        </div>
 
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Speeda分析</h2>
           <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
           <table className="min-w-full bg-white border border-gray-300 mt-4">
             <thead>
