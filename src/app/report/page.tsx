@@ -50,76 +50,13 @@ const ReportPageContent = () => {
     financial_analysis: "財務分析について記入してください。",
   });
 
-  // ChatGPT APIを使用した要約処理
-  const fetchChatGPTSummary = async (key: string, prompt: string) => {
-    try {
-      const response = await fetch("/api/chatgpt-summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) {
-        throw new Error("ChatGPT APIの呼び出しに失敗しました。");
-      }
-
-      const data = await response.json();
-      setIndustryData((prev) => ({ ...prev, [key]: data.summary })); // 要約結果を更新
-    } catch (error) {
-      console.error(error);
-      alert("要約の再生成に失敗しました。");
-    }
-  };
-
-  const handleRegenerate = async (key: string) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/generate-summary`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: prompts[key], // プロンプトを送信
-          }),
-        }
-      );
-  
-      if (!response.ok) {
-        throw new Error("Failed to regenerate summary.");
-      }
-  
-      const data = await response.json();
-  
-      setIndustryData((prev) => {
-        if (prev) {
-          // prevが存在する場合は展開して更新
-          return { ...prev, [key]: data.summary || "" };
-        } else {
-          // prevがnullの場合は新しいオブジェクトを作成
-          return {
-            current_situation: "",
-            future_outlook: "",
-            investment_advantages: "",
-            investment_disadvantages: "",
-            value_up_hypothesis: "",
-            industry_challenges: "",
-            growth_drivers: "",
-            financial_analysis: "",
-            [key]: data.summary || "", // 対象フィールドを上書き
-          };
-        }
-      });
-
-  // 初回のモックデータ設定（モックモード）
+  // 初回のモックデータ設定
   useEffect(() => {
     if (!selectedIndustry) {
       setErrorMessage("業界情報が指定されていません。");
       return;
     }
 
-    // モックデータ
     const mockData: IndustryData = {
       current_situation: "現在の業界は安定した成長を遂げています。",
       future_outlook: "将来的にはさらなる需要が見込まれます。",
@@ -132,8 +69,8 @@ const ReportPageContent = () => {
       ev_ebitda_median: "8.4倍",
     };
 
-    setIndustryData(mockData); // モックデータを設定
-    setErrorMessage(""); // エラーメッセージをクリア
+    setIndustryData(mockData);
+    setErrorMessage("");
   }, [selectedIndustry]);
 
   // トグル処理
@@ -141,15 +78,56 @@ const ReportPageContent = () => {
     setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // 再生成処理
+  const handleRegenerate = async (key: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/generate-summary`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt: prompts[key],
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("再生成に失敗しました。");
+      }
+
+      const data = await response.json();
+
+      setIndustryData((prev) => {
+        const updatedData: IndustryData = {
+          current_situation: prev?.current_situation || "",
+          future_outlook: prev?.future_outlook || "",
+          investment_advantages: prev?.investment_advantages || "",
+          investment_disadvantages: prev?.investment_disadvantages || "",
+          value_up_hypothesis: prev?.value_up_hypothesis || "",
+          industry_challenges: prev?.industry_challenges || "",
+          growth_drivers: prev?.growth_drivers || "",
+          financial_analysis: prev?.financial_analysis || "",
+          ev_ebitda_median: prev?.ev_ebitda_median || "",
+        };
+
+        return { ...updatedData, [key]: data.summary || "" };
+      });
+    } catch (error) {
+      console.error(error);
+      alert("要約の再生成に失敗しました。");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
         <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">{companyName} 調査結果</h1>
 
-        {/* エラーメッセージ */}
         {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
 
-        {/* 各セクション表示 */}
         {industryData &&
           Object.keys(industryData).map((key, index) => (
             <div key={key} className="mb-6">
@@ -167,7 +145,6 @@ const ReportPageContent = () => {
                   再生成
                 </button>
               </div>
-
               <div className="mt-2">
                 <input
                   type="text"
@@ -176,21 +153,11 @@ const ReportPageContent = () => {
                   className="block w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>
-
               {isOpen[key] && (
                 <p className="text-base text-gray-800 mt-4">{industryData[key as keyof IndustryData]}</p>
               )}
             </div>
           ))}
-
-        <div className="text-center mt-6">
-          <button
-            className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
-            onClick={() => alert("テキスト出力処理が呼び出されました。")}
-          >
-            テキスト出力
-          </button>
-        </div>
 
         <Link href="/" className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 mt-6 text-center block">
           戻る
