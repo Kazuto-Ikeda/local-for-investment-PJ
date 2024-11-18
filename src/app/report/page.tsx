@@ -38,17 +38,7 @@ const ReportPageContent = () => {
   // ステート
   const [industryData, setIndustryData] = useState<IndustryData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isOpen, setIsOpen] = useState<Record<string, boolean>>({});
-  const [prompts, setPrompts] = useState<Record<string, string>>({
-    current_situation: "対象会社および事業内容に関する説明を記入してください。",
-    future_outlook: "業界の将来の見立てを記入してください。",
-    investment_advantages: "投資メリットについて記入してください。",
-    investment_disadvantages: "投資デメリットについて記入してください。",
-    value_up_hypothesis: "DXによるバリューアップ仮説を記入してください。",
-    industry_challenges: "業界の課題について記入してください。",
-    growth_drivers: "成長ドライバーについて記入してください。",
-    financial_analysis: "財務分析について記入してください。",
-  });
+  const [isOpenIndustry, setIsOpenIndustry] = useState(false);
 
   // 初回のモックデータ設定
   useEffect(() => {
@@ -73,91 +63,78 @@ const ReportPageContent = () => {
     setErrorMessage("");
   }, [selectedIndustry]);
 
-  // トグル処理
-  const toggleSection = (key: string) => {
-    setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // 再生成処理
-  const handleRegenerate = async (key: string) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/generate-summary`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: prompts[key],
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("再生成に失敗しました。");
-      }
-
-      const data = await response.json();
-
-      setIndustryData((prev) => {
-        const updatedData: IndustryData = {
-          current_situation: prev?.current_situation || "",
-          future_outlook: prev?.future_outlook || "",
-          investment_advantages: prev?.investment_advantages || "",
-          investment_disadvantages: prev?.investment_disadvantages || "",
-          value_up_hypothesis: prev?.value_up_hypothesis || "",
-          industry_challenges: prev?.industry_challenges || "",
-          growth_drivers: prev?.growth_drivers || "",
-          financial_analysis: prev?.financial_analysis || "",
-          ev_ebitda_median: prev?.ev_ebitda_median || "",
-        };
-
-        return { ...updatedData, [key]: data.summary || "" };
-      });
-    } catch (error) {
-      console.error(error);
-      alert("要約の再生成に失敗しました。");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
         <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">{companyName} 調査結果</h1>
 
+        {/* エラーメッセージ */}
         {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
 
-        {industryData &&
-          Object.keys(industryData).map((key, index) => (
-            <div key={key} className="mb-6">
-              <div className="flex justify-between items-center">
-                <h2
-                  className="text-xl font-bold text-gray-700 cursor-pointer"
-                  onClick={() => toggleSection(key)}
-                >
-                  {index + 1} {key.replace(/_/g, " ")} {isOpen[key] ? "▲" : "▼"}
-                </h2>
-                <button
-                  onClick={() => handleRegenerate(key)}
-                  className="bg-gray-700 text-white py-1 px-4 rounded-md"
-                >
-                  再生成
-                </button>
-              </div>
-              <div className="mt-2">
-                <input
-                  type="text"
-                  value={prompts[key]}
-                  onChange={(e) => setPrompts({ ...prompts, [key]: e.target.value })}
-                  className="block w-full p-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              {isOpen[key] && (
-                <p className="text-base text-gray-800 mt-4">{industryData[key as keyof IndustryData]}</p>
-              )}
+        <hr className="my-8 border-t-2 border-gray-300" />
+
+        {/* ChatGPT＋SPEEDAレポート分析 */}
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT＋SPEEDA分析</h2>
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            <h2
+              className="text-xl font-bold text-gray-700 cursor-pointer"
+              onClick={() => setIsOpenIndustry(!isOpenIndustry)}
+            >
+              業界分析 {isOpenIndustry ? "▲" : "▼"}
+            </h2>
+          </div>
+          {isOpenIndustry && industryData && (
+            <div className="text-base text-gray-800 mt-4">
+              <strong>現状</strong>: {industryData.current_situation}<br />
+              <strong>将来の見立て</strong>: {industryData.future_outlook}<br />
+              <strong>メリット</strong>: {industryData.investment_advantages}<br />
+              <strong>デメリット</strong>: {industryData.investment_disadvantages}<br />
+              <strong>DXによるバリューアップ</strong>: {industryData.value_up_hypothesis}
             </div>
-          ))}
+          )}
+        </div>
+
+        {/* バリュエーション */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
+          <table className="min-w-full bg-white border border-gray-300 mt-4">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">項目</th>
+                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">直近実績</th>
+                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">進行期見込</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="py-2 px-4 border-b">売上</td>
+                <td className="py-2 px-4 border-b">{revenueCurrent}</td>
+                <td className="py-2 px-4 border-b">{revenueForecast}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-4 border-b">EBITDA</td>
+                <td className="py-2 px-4 border-b">{ebitdaCurrent}</td>
+                <td className="py-2 px-4 border-b">{ebitdaForecast}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-4 border-b bg-indigo-100">EV</td>
+                <td className="py-2 px-4 border-b bg-indigo-100">{evCurrent}</td>
+                <td className="py-2 px-4 border-b bg-indigo-100">{evForecast}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* テキスト出力 */}
+        <div className="text-center mt-6">
+          <button
+            className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
+            onClick={() => alert("テキスト出力機能が呼び出されました。")}
+          >
+            テキスト出力
+          </button>
+        </div>
 
         <Link href="/" className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 mt-6 text-center block">
           戻る
