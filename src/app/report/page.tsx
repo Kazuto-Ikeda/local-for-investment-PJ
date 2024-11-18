@@ -20,6 +20,7 @@ const ReportPageContent = () => {
   const selectedIndustry = searchParams.get("selectedIndustry");
 
   // ステート
+  const [isOpenIndustry, setIsOpenIndustry] = useState(false);
   const [industryData, setIndustryData] = useState<IndustryData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isOpen, setIsOpen] = useState<Record<string, boolean>>({});
@@ -124,6 +125,7 @@ const ReportPageContent = () => {
             >
               業界分析 {isOpenIndustry ? "▲" : "▼"}
             </h2>
+            {isOpenIndustry && <p>業界分析の詳細をここに表示</p>}
           </div>
           {/* トグルでの表示内容 */}
           {isOpenIndustry && industryData && (
