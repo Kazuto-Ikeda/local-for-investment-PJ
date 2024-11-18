@@ -88,7 +88,7 @@ const ReportPageContent = () => {
 
         <hr className="my-8 border-t-2 border-gray-300" />
 
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT＋SPEEDA分析</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT＋Perplexity</h2>
 
         {industryData &&
           Object.keys(industryData).map((key, index) => (
@@ -122,6 +122,7 @@ const ReportPageContent = () => {
           ))}
 
         <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Speeda分析</h2>
           <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
           <table className="min-w-full bg-white border border-gray-300 mt-4">
             <thead>
