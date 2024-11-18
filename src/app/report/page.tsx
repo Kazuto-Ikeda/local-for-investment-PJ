@@ -91,16 +91,22 @@ const ReportPageContent = () => {
       }
   
       const data = await response.json();
-      setIndustryData((prev) => ({
-        ...prev,
-        [key]: data.summary || "", // 要約結果を更新（undefinedの可能性を排除）
-      })); 
+  
+      // 修正版: prevがnullの場合を考慮
+      setIndustryData((prev) =>
+        prev
+          ? {
+              ...prev,
+              [key]: data.summary || "", // 要約結果を更新
+            }
+          : { [key]: data.summary || "" } as IndustryData // prevがnullの場合の初期化
+      );
     } catch (error) {
       console.error(error);
       alert("要約の再生成に失敗しました。");
     }
   };
-  
+
   // 初回のモックデータ設定（モックモード）
   useEffect(() => {
     if (!selectedIndustry) {
