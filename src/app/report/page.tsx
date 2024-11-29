@@ -159,15 +159,21 @@ const ReportPageContent = () => {
             </thead>
             <tbody>
               <tr>
-                <td className="py-2 px-4 border-b">売上</td>
-                <td className="py-2 px-4 border-b">{revenueCurrent}</td>
-                <td className="py-2 px-4 border-b">{revenueForecast}</td>
-              </tr>
-              <tr>
                 <td className="py-2 px-4 border-b">EBITDA</td>
                 <td className="py-2 px-4 border-b">{ebitdaCurrent}</td>
                 <td className="py-2 px-4 border-b">{ebitdaForecast}</td>
               </tr>
+              <tr>
+                <td className="py-2 px-4 border-b">NetDebt</td>
+                <td className="py-2 px-4 border-b">{netDebtCurrent}</td>
+                <td className="py-2 px-4 border-b">{netDebtForecast}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-4 border-b">想定EquityValue</td>
+                <td className="py-2 px-4 border-b">{ebitdaCurrent}</td>
+                <td className="py-2 px-4 border-b">{ebitdaForecast}</td>
+              </tr>
+
               <tr>
                 <td className="py-2 px-4 border-b bg-indigo-100">EV</td>
                 <td className="py-2 px-4 border-b bg-indigo-100">{evCurrent}</td>

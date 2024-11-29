@@ -102,7 +102,7 @@ const handleMiddleCategoryChange = (category: string) => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">【仮】A3 Investment Reconnoiter</h1>
+        <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">FundamentAI β版</h1>
 
         <div className="grid grid-cols-2 gap-8">
           <div className="col-span-2">
