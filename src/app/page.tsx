@@ -112,6 +112,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 株式会社サンプル"
               />
@@ -125,6 +126,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={headOfficeLocation}
                 onChange={(e) => setHeadOfficeLocation(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 東京都千代田区平河町"
               />
@@ -137,6 +139,7 @@ const handleMiddleCategoryChange = (category: string) => {
               <textarea
                 value={businessDescription}
                 onChange={(e) => setBusinessDescription(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: ソフトウェア開発事業"
               />
@@ -216,6 +219,7 @@ const handleMiddleCategoryChange = (category: string) => {
                   {industry}
                   <button
                     onClick={() => removeIndustry(industry)}
+                    style={{ color: "black"}}
                     className="text-red-500 ml-2"
                   >
                     削除
@@ -234,6 +238,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={revenueCurrent}
                 onChange={(e) => handleRevenueCurrentChange(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 100"
               />
@@ -247,6 +252,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={revenueForecast}
                 onChange={(e) => handleRevenueForecastChange(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 120"
               />
@@ -260,6 +266,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={ebitdaCurrent}
                 onChange={(e) => handleEbitdaCurrentChange(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 20"
               />
@@ -273,6 +280,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={ebitdaForecast}
                 onChange={(e) => handleEbitdaForecastChange(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 25"
               />
@@ -286,6 +294,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={netDebt}
                 onChange={(e) => handleNetDebtChange(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 5"
               />
@@ -299,6 +308,7 @@ const handleMiddleCategoryChange = (category: string) => {
                 type="text"
                 value={equityValue}
                 onChange={(e) => handleEquityValueChange(e.target.value)}
+                style={{ color: "black"}}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 30"
               />
