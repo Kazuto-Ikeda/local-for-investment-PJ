@@ -34,17 +34,29 @@ const ReportPageContent = () => {
     SWOT分析: `${companyName}のSWOT分析をお願いします。`
   });
 
-  const revenueCurrent = searchParams.get("revenueCurrent") || "0";
-  const revenueForecast = searchParams.get("revenueForecast") || "0";
+  // URLパラメータからデータを取得
   const ebitdaCurrent = searchParams.get("ebitdaCurrent") || "0";
   const ebitdaForecast = searchParams.get("ebitdaForecast") || "0";
   const netDebtCurrent = searchParams.get("netDebtCurrent") || "0";
   const netDebtForecast = searchParams.get("netDebtForecast") || "0";
   const equityValueCurrent = searchParams.get("equityValueCurrent") || "0";
   const equityValueForecast = searchParams.get("equityValueForecast") || "0";
+  const evCurrent = searchParams.get("evCurrent") || "0";
+  const evForecast = searchParams.get("evForecast") || "0";
+  const entryMultipleCurrent = searchParams.get("entryMultipleCurrent") || "N/A";
+  const entryMultipleForecast = searchParams.get("entryMultipleForecast") || "N/A";
+  const industryMedianCurrent = searchParams.get("industryMedianCurrent") || "N/A";
+  const industryMedianForecast = searchParams.get("industryMedianForecast") || "N/A";
 
-  const evCurrent = (parseFloat(netDebtCurrent) + parseFloat(equityValueCurrent)).toLocaleString();
-  const evForecast = (parseFloat(netDebtForecast) + parseFloat(equityValueForecast)).toLocaleString();
+  // バリュエーションデータを定義
+  const valuationData = [
+    { label: "EBITDA", current: ebitdaCurrent, forecast: ebitdaForecast },
+    { label: "NetDebt", current: netDebtCurrent, forecast: netDebtForecast },
+    { label: "想定EquityValue", current: equityValueCurrent, forecast: equityValueForecast },
+    { label: "EV", current: evCurrent, forecast: evForecast, highlight: true },
+    { label: "エントリーマルチプル", current: entryMultipleCurrent, forecast: entryMultipleForecast },
+    { label: "マルチプル業界中央値", current: industryMedianCurrent, forecast: industryMedianForecast },
+  ];  
 
   // 初回のモックデータ設定
   useEffect(() => {
@@ -152,38 +164,24 @@ const ReportPageContent = () => {
           )}
         </div>  */}
 
-        <div className="mb-6">
+      <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
           <table className="min-w-full bg-white border border-gray-300 mt-4">
             <thead>
               <tr>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">項目</th>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">直近実績</th>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">進行期見込</th>
+                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left text-black">項目</th>
+                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left text-black">直近実績</th>
+                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left text-black">進行期見込</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="py-2 px-4 border-b">EBITDA</td>
-                <td className="py-2 px-4 border-b">{ebitdaCurrent}</td>
-                <td className="py-2 px-4 border-b">{ebitdaForecast}</td>
-              </tr>
-              <tr>
-                <td className="py-2 px-4 border-b">NetDebt</td>
-                <td className="py-2 px-4 border-b">{netDebtCurrent}</td>
-                <td className="py-2 px-4 border-b">{netDebtForecast}</td>
-              </tr>
-              <tr>
-                <td className="py-2 px-4 border-b">想定EquityValue</td>
-                <td className="py-2 px-4 border-b">{ebitdaCurrent}</td>
-                <td className="py-2 px-4 border-b">{ebitdaForecast}</td>
-              </tr>
-
-              <tr>
-                <td className="py-2 px-4 border-b bg-indigo-100">EV</td>
-                <td className="py-2 px-4 border-b bg-indigo-100">{evCurrent}</td>
-                <td className="py-2 px-4 border-b bg-indigo-100">{evForecast}</td>
-              </tr>
+              {valuationData.map((item, index) => (
+                <tr key={index} className={item.highlight ? "bg-indigo-100" : ""}>
+                  <td className="py-2 px-4 border-b text-black">{item.label}</td>
+                  <td className="py-2 px-4 border-b text-black">{item.current}</td>
+                  <td className="py-2 px-4 border-b text-black">{item.forecast}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -193,7 +191,7 @@ const ReportPageContent = () => {
             className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
             onClick={() => alert("テキスト出力機能が呼び出されました。")}
           >
-            テキスト出力
+            Wordに出力
           </button>
         </div>
 
@@ -214,3 +212,6 @@ const ReportPage = () => {
 };
 
 export default ReportPage;
+
+
+
