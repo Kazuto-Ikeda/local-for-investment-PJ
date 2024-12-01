@@ -180,10 +180,6 @@ const ReportPageContent = () => {
         )}
 
 
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">バリュエーションレポート</h1>
-
         {apiErrorMessage && <p className="text-red-600 mb-4">{apiErrorMessage}</p>}
 
         <div className="mb-6">
@@ -207,10 +203,6 @@ const ReportPageContent = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-
 
         <Link href="/" className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 mt-6 text-center block">
           戻る
