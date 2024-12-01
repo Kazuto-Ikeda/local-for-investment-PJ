@@ -179,56 +179,6 @@ const ReportPageContent = () => {
           <p className="text-gray-500 text-center">データを取得中...</p>
         )}
 
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
-        <table className="min-w-full bg-white border border-gray-300 mt-4">
-          <thead>
-            <tr>
-              <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left text-black">項目</th>
-              <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left text-black">直近実績</th>
-              <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left text-black">進行期見込</th>
-            </tr>
-          </thead>
-          <tbody>
-            {valuationData.map((item, index) => (
-              <tr key={index} className={item.highlight ? "bg-indigo-100" : ""}>
-                <td className="py-2 px-4 border-b text-black">{item.label}</td>
-                <td className="py-2 px-4 border-b text-black">{item.current}</td>
-                <td className="py-2 px-4 border-b text-black">{item.forecast}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">バリュエーションレポート</h1>
-
-        {apiErrorMessage && <p className="text-red-600 mb-4">{apiErrorMessage}</p>}
-
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
-          <table className="min-w-full bg-white border border-gray-300 mt-4">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">項目</th>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">直近実績</th>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">進行期見込</th>
-              </tr>
-            </thead>
-            <tbody>
-              {valuationData.map((item, index) => (
-                <tr key={index} className={item.highlight ? "bg-indigo-100" : ""}>
-                  <td className="py-2 px-4 border-b text-black">{item.label}</td>
-                  <td className="py-2 px-4 border-b text-black">{item.current}</td>
-                  <td className="py-2 px-4 border-b text-black">{item.forecast}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
