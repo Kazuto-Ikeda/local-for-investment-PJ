@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useCallback, useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -166,8 +166,8 @@ const ReportPageContent = () => {
 >([]);
 
 
-    // 要約データ取得関数
-    const fetchSummaries = async () => {
+      // 要約データ取得関数
+    const fetchSummaries = useCallback(async () => {
       try {
         const response = await fetch("/summarize", {
           method: "POST",
@@ -182,18 +182,18 @@ const ReportPageContent = () => {
             include_perplexity: includePerplexity,
           }),
         });
-  
+    
         if (!response.ok) {
           throw new Error("要約データの取得に失敗しました。");
         }
-  
+    
         const data = await response.json();
         setSummaries(data.summaries);
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : "要約処理中にエラーが発生しました。");
       }
-    };
-  
+    }, [majorCategory, middleCategory, smallCategory, companyName, includePerplexity]);  
+   
     // バリュエーションデータ取得関数
     const fetchValuationData = async () => {
       try {
@@ -237,7 +237,7 @@ useEffect(() => {
     fetchSummaries();
     fetchValuationData();
   }
-}, [companyName, majorCategory, middleCategory, smallCategory]);
+}, [companyName, majorCategory, middleCategory, smallCategory, fetchSummaries, fetchValuationData]);
   
   const toggleSection = (key: string) => {
     setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
