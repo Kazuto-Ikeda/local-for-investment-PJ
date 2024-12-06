@@ -164,89 +164,90 @@ const IndexPage = () => {
           )}
         </div>
 
-        {/* 財務データ入力 */}
-        <div className="col-span-2">
-          <label className="block mb-4">
-            <span className="text-gray-700">売上（直近期, 百万円）</span>
-            <input
-              type="text"
-              value={revenueCurrent}
-              onChange={(e) => handleRevenueChange(e.target.value, setRevenueCurrent)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              placeholder="例: 100"
-              style={{ color: "black" }}
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="block mb-4">
-            <span className="text-gray-700">売上（進行期見込, 百万円）</span>
-            <input
-              type="text"
-              value={revenueForecast}
-              onChange={(e) => handleRevenueChange(e.target.value, setRevenueForecast)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              placeholder="例: 150"
-              style={{ color: "black" }}
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="block mb-4">
-            <span className="text-gray-700">EBITDA（直近期, 百万円）</span>
-            <input
-              type="text"
-              value={ebitdaCurrent}
-              onChange={(e) => handleRevenueChange(e.target.value, setEbitdaCurrent)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              placeholder="例: 20"
-              style={{ color: "black" }}
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="block mb-4">
-            <span className="text-gray-700">EBITDA（進行期見込, 百万円）</span>
-            <input
-              type="text"
-              value={ebitdaForecast}
-              onChange={(e) => handleRevenueChange(e.target.value, setEbitdaForecast)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              placeholder="例: 30"
-              style={{ color: "black" }}
-            />
-          </label>
-        </div>
-        <div>
-          <label className="block mb-4">
-            <span className="text-gray-700">NetDebt（直近期, 百万円）</span>
-            <input
-              type="text"
-              value={netDebtCurrent}
-              onChange={(e) => handleRevenueChange(e.target.value, setNetDebtCurrent)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              placeholder="例: 50"
-              style={{ color: "black" }}
-            />
-          </label>
-        </div>
-        <div>
-          <label className="block mb-4">
-            <span className="text-gray-700">想定EquityValue（百万円）</span>
-            <input
-              type="text"
-              value={equityValueForecast}
-              onChange={(e) => handleRevenueChange(e.target.value, setEquityValueForecast)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              placeholder="例: 45"
-              style={{ color: "black" }}
-            />
-          </label>
-        </div>
-
+    {/* 財務データ入力 */}
+    <div className="grid grid-cols-2 gap-8 mt-8">
+    {/* 売上 */}
+    <div>
+      <label className="block mb-4">
+        <span className="text-gray-700">売上（直近期, 百万円）</span>
+        <input
+          type="text"
+          value={revenueCurrent}
+          onChange={(e) => handleRevenueChange(e.target.value, setRevenueCurrent)}
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          placeholder="例: 100"
+          style={{ color: "black" }}
+        />
+      </label>
+    </div>
+    <div>
+      <label className="block mb-4">
+        <span className="text-gray-700">売上（進行期見込, 百万円）</span>
+        <input
+          type="text"
+          value={revenueForecast}
+          onChange={(e) => handleRevenueChange(e.target.value, setRevenueForecast)}
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          placeholder="例: 150"
+          style={{ color: "black" }}
+        />
+      </label>
+    </div>
+    {/* EBITDA */}
+    <div>
+      <label className="block mb-4">
+        <span className="text-gray-700">EBITDA（直近期, 百万円）</span>
+        <input
+          type="text"
+          value={ebitdaCurrent}
+          onChange={(e) => handleRevenueChange(e.target.value, setEbitdaCurrent)}
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          placeholder="例: 20"
+          style={{ color: "black" }}
+        />
+      </label>
+    </div>
+    <div>
+      <label className="block mb-4">
+        <span className="text-gray-700">EBITDA（進行期見込, 百万円）</span>
+        <input
+          type="text"
+          value={ebitdaForecast}
+          onChange={(e) => handleRevenueChange(e.target.value, setEbitdaForecast)}
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          placeholder="例: 30"
+          style={{ color: "black" }}
+        />
+      </label>
+    </div>
+    {/* NetDebt */}
+    <div>
+      <label className="block mb-4">
+        <span className="text-gray-700">NetDebt（直近期, 百万円）</span>
+        <input
+          type="text"
+          value={netDebtCurrent}
+          onChange={(e) => handleRevenueChange(e.target.value, setNetDebtCurrent)}
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          placeholder="例: 50"
+          style={{ color: "black" }}
+        />
+      </label>
+    </div>
+    <div>
+      <label className="block mb-4">
+        <span className="text-gray-700">想定EquityValue（百万円）</span>
+        <input
+          type="text"
+          value={netDebtForecast}
+          onChange={(e) => handleRevenueChange(e.target.value, setEquityValueForecast)}
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          placeholder="例: 45"
+          style={{ color: "black" }}
+        />
+      </label>
+    </div>
+    </div>
         <Link
           href={{
             pathname: "/report",
