@@ -25,8 +25,11 @@ const IndexPage = () => {
   const [revenueForecast, setRevenueForecast] = useState("");
   const [ebitdaCurrent, setEbitdaCurrent] = useState("");
   const [ebitdaForecast, setEbitdaForecast] = useState("");
-  const [netDebt, setNetDebt] = useState("");
-  const [equityValue, setEquityValue] = useState("");
+  const [netDebtCurrent, setNetDebtCurrent] = useState("");
+  const [netDebtForecast, setNetDebtForecast] = useState("");
+  const [equityValueCurrent, setEquityValueCurrent] = useState("");
+  const [equityValueForecast, setEquityValueForecast] = useState("");
+
 
   const [majorCategory, setMajorCategory] = useState("");
   const [middleCategory, setMiddleCategory] = useState("");
@@ -70,10 +73,10 @@ const IndexPage = () => {
     revenueForecast: parseFloat(revenueForecast) || 0,
     ebitdaCurrent: parseFloat(ebitdaCurrent) || 0,
     ebitdaForecast: parseFloat(ebitdaForecast) || 0,
-    netDebtCurrent: parseFloat(netDebt) || 0,
-    netDebtForecast: parseFloat(netDebt) || 0,
-    equityValueCurrent: parseFloat(equityValue) || 0,
-    equityValueForecast: parseFloat(equityValue) || 0,
+    netDebtCurrent: parseFloat(netDebtCurrent) || 0,
+    netDebtForecast: parseFloat(netDebtForecast) || 0,
+    equityValueCurrent: parseFloat(equityValueCurrent) || 0,
+    equityValueForecast: parseFloat(equityValueForecast) || 0,
     majorCategory: majorCategory || undefined,
     middleCategory: middleCategory || undefined,
     smallCategory: smallCategory || undefined,
@@ -94,20 +97,6 @@ const IndexPage = () => {
                 onChange={(e) => setCompanyName(e.target.value)}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 株式会社サンプル"
-                style={{ color: "black" }}
-              />
-            </label>
-          </div>
-
-          <div className="col-span-2">
-            <label className="block mb-4">
-              <span className="text-gray-700">売上（直近期, 百万円）</span>
-              <input
-                type="text"
-                value={revenueCurrent}
-                onChange={(e) => handleRevenueChange(e.target.value, setRevenueCurrent)}
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                placeholder="例: 100"
                 style={{ color: "black" }}
               />
             </label>
@@ -173,6 +162,89 @@ const IndexPage = () => {
               </label>
             </div>
           )}
+        </div>
+
+        {/* 財務データ入力 */}
+        <div className="col-span-2">
+          <label className="block mb-4">
+            <span className="text-gray-700">売上（直近期, 百万円）</span>
+            <input
+              type="text"
+              value={revenueCurrent}
+              onChange={(e) => handleRevenueChange(e.target.value, setRevenueCurrent)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              placeholder="例: 100"
+              style={{ color: "black" }}
+            />
+          </label>
+        </div>
+
+        <div>
+          <label className="block mb-4">
+            <span className="text-gray-700">売上（進行期見込, 百万円）</span>
+            <input
+              type="text"
+              value={revenueForecast}
+              onChange={(e) => handleRevenueChange(e.target.value, setRevenueForecast)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              placeholder="例: 150"
+              style={{ color: "black" }}
+            />
+          </label>
+        </div>
+
+        <div>
+          <label className="block mb-4">
+            <span className="text-gray-700">EBITDA（直近期, 百万円）</span>
+            <input
+              type="text"
+              value={ebitdaCurrent}
+              onChange={(e) => handleRevenueChange(e.target.value, setEbitdaCurrent)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              placeholder="例: 20"
+              style={{ color: "black" }}
+            />
+          </label>
+        </div>
+
+        <div>
+          <label className="block mb-4">
+            <span className="text-gray-700">EBITDA（進行期見込, 百万円）</span>
+            <input
+              type="text"
+              value={ebitdaForecast}
+              onChange={(e) => handleRevenueChange(e.target.value, setEbitdaForecast)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              placeholder="例: 30"
+              style={{ color: "black" }}
+            />
+          </label>
+        </div>
+        <div>
+          <label className="block mb-4">
+            <span className="text-gray-700">NetDebt（直近期, 百万円）</span>
+            <input
+              type="text"
+              value={netDebtCurrent}
+              onChange={(e) => handleRevenueChange(e.target.value, setNetDebtCurrent)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              placeholder="例: 50"
+              style={{ color: "black" }}
+            />
+          </label>
+        </div>
+        <div>
+          <label className="block mb-4">
+            <span className="text-gray-700">想定EquityValue（百万円）</span>
+            <input
+              type="text"
+              value={equityValueForecast}
+              onChange={(e) => handleRevenueChange(e.target.value, setEquityValueForecast)}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              placeholder="例: 45"
+              style={{ color: "black" }}
+            />
+          </label>
         </div>
 
         <Link
