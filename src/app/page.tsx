@@ -239,7 +239,7 @@ const IndexPage = () => {
         <span className="text-gray-700">想定EquityValue（百万円）</span>
         <input
           type="text"
-          value={netDebtForecast}
+          value={equityValueForecast}
           onChange={(e) => handleRevenueChange(e.target.value, setEquityValueForecast)}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           placeholder="例: 45"
