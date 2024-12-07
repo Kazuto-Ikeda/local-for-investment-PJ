@@ -21,6 +21,8 @@ interface QueryParams {
 
 const IndexPage = () => {
   const [companyName, setCompanyName] = useState("");
+  const [address, setAddress] = useState("");
+  const [businessDescription, setBusinessDescription] = useState("");
   const [revenueCurrent, setRevenueCurrent] = useState("");
   const [revenueForecast, setRevenueForecast] = useState("");
   const [ebitdaCurrent, setEbitdaCurrent] = useState("");
@@ -98,6 +100,36 @@ const IndexPage = () => {
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: 株式会社サンプル"
                 style={{ color: "black" }}
+              />
+            </label>
+          </div>
+
+          {/* 会社住所 */}
+          <div className="col-span-2">
+            <label className="block mb-4">
+              <span className="text-gray-700">会社住所</span>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                placeholder="例: 東京都千代田区丸の内1-1-1"
+                style={{ color: "black" }}
+              />
+            </label>
+          </div>
+
+          {/* 事業内容 */}
+          <div className="col-span-2">
+            <label className="block mb-4">
+              <span className="text-gray-700">事業内容</span>
+              <textarea
+                value={businessDescription}
+                onChange={(e) => setBusinessDescription(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                placeholder="例: ソフトウェア開発、ITコンサルティング"
+                style={{ color: "black" }}
+                rows={4}
               />
             </label>
           </div>

@@ -255,7 +255,7 @@ useEffect(() => {
   
         <hr className="my-8 border-t-2 border-gray-300" />
   
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT＋Perplexity</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT（＋Perplexity）要約分析</h2>
   
     {/* データが取得できた場合 */}
     {industryData ? (
