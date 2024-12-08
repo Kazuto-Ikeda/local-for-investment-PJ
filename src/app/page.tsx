@@ -1,26 +1,26 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import industryHierarchy from "./industry_hierarchy.json" assert { type: "json" };
 
-interface QueryParams {
-  companyName: string;
-  revenueCurrent: number;
-  revenueForecast: number;
-  ebitdaCurrent: number;
-  ebitdaForecast: number;
-  netDebtCurrent: number;
-  netDebtForecast: number;
-  equityValueCurrent: number;
-  equityValueForecast: number;
-  industryMedianMultipleCurrent: number;
-  industryMedianMultipleForecast: number;
-  majorCategory?: string;
-  middleCategory?: string;
-  smallCategory?: string;
-}
+// interface QueryParams {
+//   companyName: string;
+//   revenueCurrent: number;
+//   revenueForecast: number;
+//   ebitdaCurrent: number;
+//   ebitdaForecast: number;
+//   netDebtCurrent: number;
+//   netDebtForecast: number;
+//   equityValueCurrent: number;
+//   equityValueForecast: number;
+//   industryMedianMultipleCurrent: number;
+//   industryMedianMultipleForecast: number;
+//   majorCategory?: string;
+//   middleCategory?: string;
+//   smallCategory?: string;
+// }
 
 interface IndustryData {
   現状: string;
@@ -87,25 +87,25 @@ const IndexPage = () => {
     setValue(sanitizedValue);
   };
 
-  const queryParams: QueryParams = {
-    companyName: companyName || "株式会社サンプル",
-    revenueCurrent: parseFloat(revenueCurrent) || 0,
-    revenueForecast: parseFloat(revenueForecast) || 0,
-    ebitdaCurrent: parseFloat(ebitdaCurrent) || 0,
-    ebitdaForecast: parseFloat(ebitdaForecast) || 0,
-    netDebtCurrent: parseFloat(netDebtCurrent) || 0,
-    netDebtForecast: parseFloat(netDebtForecast) || 0,
-    equityValueCurrent: parseFloat(equityValueCurrent) || 0,
-    equityValueForecast: parseFloat(equityValueForecast) || 0,
-    industryMedianMultipleCurrent: parseFloat(industryMedianMultipleCurrent) || 0, 
-    industryMedianMultipleForecast: parseFloat(industryMedianMultipleForecast) || 0,
-    majorCategory: majorCategory || undefined,
-    middleCategory: middleCategory || undefined,
-    smallCategory: smallCategory || undefined,
-  };
+  // const queryParams: QueryParams = {
+  //   companyName: companyName || "株式会社サンプル",
+  //   revenueCurrent: parseFloat(revenueCurrent) || 0,
+  //   revenueForecast: parseFloat(revenueForecast) || 0,
+  //   ebitdaCurrent: parseFloat(ebitdaCurrent) || 0,
+  //   ebitdaForecast: parseFloat(ebitdaForecast) || 0,
+  //   netDebtCurrent: parseFloat(netDebtCurrent) || 0,
+  //   netDebtForecast: parseFloat(netDebtForecast) || 0,
+  //   equityValueCurrent: parseFloat(equityValueCurrent) || 0,
+  //   equityValueForecast: parseFloat(equityValueForecast) || 0,
+  //   industryMedianMultipleCurrent: parseFloat(industryMedianMultipleCurrent) || 0, 
+  //   industryMedianMultipleForecast: parseFloat(industryMedianMultipleForecast) || 0,
+  //   majorCategory: majorCategory || undefined,
+  //   middleCategory: middleCategory || undefined,
+  //   smallCategory: smallCategory || undefined,
+  // };
 
-    const searchParams = useSearchParams();
-    const selectedIndustry = searchParams.get("selectedIndustry");
+    // const searchParams = useSearchParams();
+    // const selectedIndustry = searchParams.get("selectedIndustry");
     const [isOpenIndustry, setIsOpenIndustry] = useState(false);
     const [industryData, setIndustryData] = useState<IndustryData | null>(null);
     const [isOpen, setIsOpen] = useState<Record<string, boolean>>({});
