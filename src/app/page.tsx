@@ -136,7 +136,7 @@ const IndexPage = () => {
     const handleAddPerplexity = async (key: string) => {
       try {
         // Perplexity要約のためのAPIリクエスト
-        const response = await fetch("http://127.0.0.1:8001/summarize/perplexity", {
+        const response = await fetch("https://investment-frontend.azurewebsites.net/summarize/perplexity", {
           method: "POST",
           mode: "cors",
           headers: {
@@ -169,7 +169,7 @@ const IndexPage = () => {
     const handleRegenerate = async (key: string) => {
       try {
         // 再生成APIへのリクエストを送信
-        const response = await fetch("http://127.0.0.1:8001/regenerate-summary", {
+        const response = await fetch("https://investment-frontend.azurewebsites.net/regenerate-summary", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -229,7 +229,7 @@ const IndexPage = () => {
     
         // エンドポイントにリクエストを送信
         const response = await fetch(
-          `http://127.0.0.1:8001/word_export?company_name=${encodeURIComponent(companyName)}`,
+          `https://investment-frontend.azurewebsites.net/word_export?company_name=${encodeURIComponent(companyName)}`,
           {
             method: "POST",
             headers: {
@@ -274,7 +274,7 @@ const IndexPage = () => {
   
   const handleSummarize = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8001/summarize", {
+      const response = await fetch("https://investment-frontend.azurewebsites.net/summarize", {
         method: "POST",
         mode: "cors",
         headers: {
@@ -335,7 +335,7 @@ const IndexPage = () => {
           console.log(test)
 
           
-          const response = await fetch("http://127.0.0.1:8001/valuation", {
+          const response = await fetch("https://investment-frontend.azurewebsites.net/valuation", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
