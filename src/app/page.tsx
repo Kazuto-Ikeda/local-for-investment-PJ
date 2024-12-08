@@ -34,7 +34,7 @@ interface IndustryData {
 
 
 const IndexPage = () => {
-  const [isLoading, setIsLoading] = useState(false); // ローディング状態を管理
+  const [isLoading, setIsLoading] = useState(false); 
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
