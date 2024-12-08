@@ -83,7 +83,7 @@ const IndexPage = () => {
   };
 
   const handleRevenueChange = (value: string, setValue: (val: string) => void) => {
-    const sanitizedValue = value.replace(/[^0-9.]/g, ""); // 数値とピリオドのみ許可
+    const sanitizedValue = value.replace(/[^0-9.]/g, ""); 
     setValue(sanitizedValue);
   };
 
