@@ -60,10 +60,14 @@ const ReportPageContent = () => {
   const [smallCategory, setSmallCategory] = useState("");
   const [includePerplexity, setIncludePerplexity] = useState(true);
 
+  
+
+
+
   const handleAddPerplexity = async (key: string) => {
     try {
       // Perplexity要約のためのAPIリクエスト
-      const response = await fetch("/summarize/perplexity", {
+      const response = await fetch("http://127.0.0.1/summarize/perplexity", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +99,7 @@ const ReportPageContent = () => {
   const handleRegenerate = async (key: string) => {
     try {
       // 再生成APIへのリクエストを送信
-      const response = await fetch("/regenerate-summary", {
+      const response = await fetch("http://127.0.0.1/regenerate-summary", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +135,7 @@ const ReportPageContent = () => {
   // Word出力APIコール関数
   const handleWordExport = async () => {
     try {
-      const response = await fetch(`/word_export`, {
+      const response = await fetch(`http://127.0.0.1/word_export`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -160,7 +164,8 @@ const ReportPageContent = () => {
     }
   };
 
-  const [summaries, setSummaries] = useState<Record<string, string>>({});  const [errorMessage, setErrorMessage] = useState("");
+  const [summaries, setSummaries] = useState<Record<string, string>>({});  
+  const [errorMessage, setErrorMessage] = useState("");
   const [valuationData, setValuationData] = useState<
   { label: string; current: number | null; forecast: number | null; highlight?: boolean }[]
 >([]);
@@ -169,7 +174,7 @@ const ReportPageContent = () => {
       // 要約データ取得関数
     const fetchSummaries = useCallback(async () => {
       try {
-        const response = await fetch("/summarize", {
+        const response = await fetch("http://127.0.0.1/summarize", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -197,7 +202,7 @@ const ReportPageContent = () => {
     // バリュエーションデータ取得関数
     const fetchValuationData = async () => {
       try {
-        const response = await fetch("/valuation", {
+        const response = await fetch("http://127.0.0.1/valuation", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
