@@ -708,7 +708,6 @@ const IndexPage = () => {
                   className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
                   disabled={isAddingPerplexity} // Perplexityのローディングに依存
                 >
-                  Perplexityで要約を追加
                   {isAddingPerplexity ? "追加中..." : "Perplexityで要約を追加"}
                 </button>
 
@@ -717,7 +716,6 @@ const IndexPage = () => {
                   className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
                   disabled={isRegenerating} // 再生成のローディングに依存
                 >
-                  ChatGPTで再生成
                   {isRegenerating ? "再生成中..." : "ChatGPTで再生成"}
                 </button>
               </div>
@@ -769,7 +767,6 @@ const IndexPage = () => {
             className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
             disabled={isExporting} // Word出力のローディングに依存
           >
-            Word出力
             {isExporting ? "ダウンロード中..." : "Word出力"}
           </button>
         </div>
