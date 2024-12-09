@@ -36,8 +36,6 @@ interface IndustryData {
 const IndexPage = () => {
   const [isLoading, setIsLoading] = useState(false); 
   const [isDownloading, setIsDownloading] = useState(false); // ダウンロード状態
-  const [isRegenerating, setIsRegenerating] = useState(false); 
-  const [isPerplexity, setIsPerplexity] = useState(false); 
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -109,8 +107,8 @@ const IndexPage = () => {
 
     // const searchParams = useSearchParams();
     // const selectedIndustry = searchParams.get("selectedIndustry");
-    const [isOpenIndustry, setIsOpenIndustry] = useState(false);
-    const [industryData, setIndustryData] = useState<IndustryData | null>(null);
+    // const [isOpenIndustry, setIsOpenIndustry] = useState(false);
+    // const [industryData, setIndustryData] = useState<IndustryData | null>(null);
     const [isOpen, setIsOpen] = useState<Record<string, boolean>>({});
     const [prompts, setPrompts] = useState<Record<string, string>>({
       現状: `業界の現状を説明してください。`,
@@ -137,7 +135,7 @@ const IndexPage = () => {
   
     // Perplexityで生成APIコール関数
     const handleAddPerplexity = async (key: string) => {
-      setIsPerplexity(true); // 再生成中のフラグをオン
+      setIsLoading(true); // ローディング状態を開始
       setErrorMessage(""); // エラーメッセージをリセット
       try {
         // Perplexity要約のためのAPIリクエスト
@@ -170,13 +168,13 @@ const IndexPage = () => {
         setErrorMessage(error instanceof Error ? error.message : "Perplexity追加処理中にエラーが発生しました。");
       } finally {
         // 再生成中の状態を false に設定
-        setIsPerplexity(false);
+        setIsLoading(false); // ローディング状態を終了
       }
     };
   
     // ChatGPTで再生成APIコール関数
     const handleRegenerate = async (key: string) => {
-      setIsRegenerating(true); // 再生成中のフラグをオン
+      setIsLoading(true);
       setErrorMessage(""); // エラーメッセージをリセット
       try {
         // 再生成APIへのリクエストを送信
@@ -212,13 +210,13 @@ const IndexPage = () => {
         setErrorMessage(error instanceof Error ? error.message : "再生成処理中にエラーが発生しました。");
       } finally {
         // 再生成中の状態を false に設定
-        setIsRegenerating(false);
+        setIsLoading(false);
       }
     };
   
     // Word出力APIコール関数
     const handleWordExport = async () => {
-      setIsDownloading(true); // ダウンロード状態を開始
+      setIsLoading(true);
       setErrorMessage(""); // エラーメッセージをリセット
       try {
         console.log("Sending summaries:", summaries);
@@ -278,7 +276,7 @@ const IndexPage = () => {
         console.error(error);
         setErrorMessage(error instanceof Error ? error.message : "Wordファイル生成中にエラーが発生しました。");
       } finally {
-        setIsDownloading(false); // ダウンロード状態を終了
+        setIsLoading(false); // ダウンロード状態を終了
       }
     };
 
@@ -680,21 +678,21 @@ const IndexPage = () => {
                 <button
                   onClick={() => handleAddPerplexity(mappedKey)}
                   className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
-                  disabled={isPerplexity} // 再生成中はボタンを無効化
+                  disabled={isLoading} // 再生成中はボタンを無効化
                 >
                   Perplexityで要約を追加
                 </button>
-                {isPerplexity && <p className="text-blue-500 mt-4">Perplexityで要約追加中...</p>} {/* 再生成の表示 */}
+                {isLoading && <p className="text-blue-500">Perplexityで要約追加中...</p>}
                 {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
 
                 <button
                   onClick={() => handleRegenerate(mappedKey)}
                   className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
-                  disabled={isRegenerating} // 再生成中はボタンを無効化
+                  disabled={isLoading} // 再生成中はボタンを無効化
                 >
                   ChatGPTで再生成
                 </button>
-                {isRegenerating && <p className="text-blue-500 mt-4">ChatGPTで再生成中...</p>} {/* 再生成の表示 */}
+                {isLoading && <p className="text-blue-500 mt-4">ChatGPTで再生成中...</p>} {/* 再生成の表示 */}
                 {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
 
               </div>
@@ -744,11 +742,9 @@ const IndexPage = () => {
           <button
             onClick={handleWordExport}
             className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
-            disabled={isDownloading} // ダウンロード中はボタンを無効化
           >
             Word出力
           </button>
-          {isDownloading && <p className="text-blue-500 mt-4">ダウンロード中...</p>} {/* ダウンロード中の表示 */}
           {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
 
         </div>
