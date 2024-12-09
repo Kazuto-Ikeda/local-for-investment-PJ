@@ -35,7 +35,6 @@ interface IndustryData {
 
 const IndexPage = () => {
   const [isLoading, setIsLoading] = useState(false); 
-  const [isDownloading, setIsDownloading] = useState(false); // ダウンロード状態
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -216,8 +215,6 @@ const IndexPage = () => {
   
     // Word出力APIコール関数
     const handleWordExport = async () => {
-      setIsLoading(true);
-      setErrorMessage(""); // エラーメッセージをリセット
       try {
         console.log("Sending summaries:", summaries);
         console.log("Sending valuation data:", valuationData);
@@ -275,8 +272,6 @@ const IndexPage = () => {
       } catch (error) {
         console.error(error);
         setErrorMessage(error instanceof Error ? error.message : "Wordファイル生成中にエラーが発生しました。");
-      } finally {
-        setIsLoading(false); // ダウンロード状態を終了
       }
     };
 
@@ -640,9 +635,10 @@ const IndexPage = () => {
             pathname: "/report",
           }}
         > */}
-          <button className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900"
-                onClick={() => {handleSummarizeAndFetch}
-      }>
+          <button 
+            className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900"
+            onClick={handleSummarizeAndFetch}
+          >
             調査開始
           </button>
 
