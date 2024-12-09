@@ -706,17 +706,17 @@ const IndexPage = () => {
                 <button
                   onClick={() => handleAddPerplexity(mappedKey)}
                   className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
-                  disabled={isAddingPerplexity[mappedKey]} // Perplexityのローディングに依存
+                  disabled={isAddingPerplexity[mappedKey] || false} // Perplexityのローディングに依存
                 >
-                  {isAddingPerplexity ? "追加中..." : "Perplexityで要約を追加"}
+                  {isAddingPerplexity[mappedKey] ? "追加中..." : "Perplexityで要約を追加"}
                 </button>
 
                 <button
                   onClick={() => handleRegenerate(mappedKey)}
                   className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
-                  disabled={isRegenerating[mappedKey]} // 再生成のローディングに依存
+                  disabled={isRegenerating[mappedKey] || false} // 再生成のローディングに依存
                 >
-                  {isRegenerating ? "再生成中..." : "ChatGPTで再生成"}
+                  {isRegenerating[mappedKey] ? "再生成中..." : "ChatGPTで再生成"}
                 </button>
               </div>
             </div>
