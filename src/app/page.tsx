@@ -35,6 +35,9 @@ interface IndustryData {
 
 const IndexPage = () => {
   const [isLoading, setIsLoading] = useState(false); 
+  const [isDownloading, setIsDownloading] = useState(false); // ダウンロード状態
+  const [isRegenerating, setIsRegenerating] = useState(false); 
+  const [isPerplexity, setIsPerplexity] = useState(false); 
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -132,8 +135,10 @@ const IndexPage = () => {
     
   
   
-  
+    // Perplexityで生成APIコール関数
     const handleAddPerplexity = async (key: string) => {
+      setIsPerplexity(true); // 再生成中のフラグをオン
+      setErrorMessage(""); // エラーメッセージをリセット
       try {
         // Perplexity要約のためのAPIリクエスト
         const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
@@ -163,10 +168,16 @@ const IndexPage = () => {
         }));
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : "Perplexity追加処理中にエラーが発生しました。");
+      } finally {
+        // 再生成中の状態を false に設定
+        setIsPerplexity(false);
       }
     };
   
+    // ChatGPTで再生成APIコール関数
     const handleRegenerate = async (key: string) => {
+      setIsRegenerating(true); // 再生成中のフラグをオン
+      setErrorMessage(""); // エラーメッセージをリセット
       try {
         // 再生成APIへのリクエストを送信
         const response = await fetch("https://investment-backend.azurewebsites.net/regenerate-summary", {
@@ -199,11 +210,16 @@ const IndexPage = () => {
         alert(`再生成が完了しました: ${key}`);
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : "再生成処理中にエラーが発生しました。");
+      } finally {
+        // 再生成中の状態を false に設定
+        setIsRegenerating(false);
       }
     };
   
     // Word出力APIコール関数
     const handleWordExport = async () => {
+      setIsDownloading(true); // ダウンロード状態を開始
+      setErrorMessage(""); // エラーメッセージをリセット
       try {
         console.log("Sending summaries:", summaries);
         console.log("Sending valuation data:", valuationData);
@@ -261,6 +277,8 @@ const IndexPage = () => {
       } catch (error) {
         console.error(error);
         setErrorMessage(error instanceof Error ? error.message : "Wordファイル生成中にエラーが発生しました。");
+      } finally {
+        setIsDownloading(false); // ダウンロード状態を終了
       }
     };
 
@@ -331,11 +349,8 @@ const IndexPage = () => {
             equity_value_current: parseFloat(equityValueCurrent) || 0,
             category: smallCategory,
           })
-
           console.log(test)
-
-          
-          const response = await fetch("https://investment-frontend.azurewebsites.net/valuation", {
+          const response = await fetch("https://investment-backend.azurewebsites.net/valuation", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -352,7 +367,6 @@ const IndexPage = () => {
       
           const data = await response.json();
           console.log("Response data:", data)
-      
           setValuationData([
             { label: "EBITDA", current: data.ebitda_current, forecast: data.ebitda_forecast },
             { label: "NetDebt", current: data.net_debt_current, forecast: data.net_debt_forecast },
@@ -366,6 +380,22 @@ const IndexPage = () => {
           setErrorMessage(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
         } finally {
           setIsLoading(false);
+        }
+      };
+
+      const handleSummarizeAndFetch = async () => {
+        setIsLoading(true); // ローディングを開始
+      
+        try {
+          // まず handleSummarize を実行
+          await handleSummarize();
+          // 次に fetchValuationData を実行
+          await fetchValuationData();
+        } catch (error) {
+          console.error("調査中にエラーが発生しました:", error);
+          setErrorMessage(error instanceof Error ? error.message : "調査中にエラーが発生しました。");
+        } finally {
+          setIsLoading(false); // すべての処理が終了したらローディングを終了
         }
       };
       
@@ -613,10 +643,7 @@ const IndexPage = () => {
           }}
         > */}
           <button className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900"
-                onClick={() => {
-                  handleSummarize();
-                  fetchValuationData();
-                }
+                onClick={() => {handleSummarizeAndFetch}
       }>
             調査開始
           </button>
@@ -653,15 +680,23 @@ const IndexPage = () => {
                 <button
                   onClick={() => handleAddPerplexity(mappedKey)}
                   className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
+                  disabled={isPerplexity} // 再生成中はボタンを無効化
                 >
                   Perplexityで要約を追加
                 </button>
+                {isPerplexity && <p className="text-blue-500 mt-4">Perplexityで要約追加中...</p>} {/* 再生成の表示 */}
+                {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
+
                 <button
                   onClick={() => handleRegenerate(mappedKey)}
                   className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
+                  disabled={isRegenerating} // 再生成中はボタンを無効化
                 >
                   ChatGPTで再生成
                 </button>
+                {isRegenerating && <p className="text-blue-500 mt-4">ChatGPTで再生成中...</p>} {/* 再生成の表示 */}
+                {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
+
               </div>
             </div>
             <div className="mt-2">
@@ -709,9 +744,13 @@ const IndexPage = () => {
           <button
             onClick={handleWordExport}
             className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
+            disabled={isDownloading} // ダウンロード中はボタンを無効化
           >
             Word出力
           </button>
+          {isDownloading && <p className="text-blue-500 mt-4">ダウンロード中...</p>} {/* ダウンロード中の表示 */}
+          {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
+
         </div>
 
         <Link href="/" className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 mt-6 text-center block">
