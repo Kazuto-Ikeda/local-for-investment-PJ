@@ -34,7 +34,19 @@ interface IndustryData {
 
 
 const IndexPage = () => {
-  const [isLoading, setIsLoading] = useState(false); 
+  // 独立したローディング状態
+  const [isLoading, setIsLoading] = useState(false); // 調査開始のローディング
+  const [isAddingPerplexity, setIsAddingPerplexity] = useState(false); // Perplexityで要約を追加のローディング
+  const [isRegenerating, setIsRegenerating] = useState(false); // ChatGPTで再生成のローディング
+  const [isExporting, setIsExporting] = useState(false); // Word出力のローディング
+
+  // 各アクションごとのエラーメッセージ状態変数
+  const [summarizeError, setSummarizeError] = useState("");
+  const [perplexityError, setPerplexityError] = useState("");
+  const [regenerateError, setRegenerateError] = useState("");
+  const [exportError, setExportError] = useState("");  
+  const [valuationError, setValuationError] = useState("");  
+
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -134,8 +146,8 @@ const IndexPage = () => {
   
     // Perplexityで生成APIコール関数
     const handleAddPerplexity = async (key: string) => {
-      setIsLoading(true); // ローディング状態を開始
-      setErrorMessage(""); // エラーメッセージをリセット
+      setIsAddingPerplexity(true); // ローディング状態を開始
+      setPerplexityError(""); // Perplexityのエラーメッセージをリセット
       try {
         // Perplexity要約のためのAPIリクエスト
         const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
@@ -164,17 +176,18 @@ const IndexPage = () => {
           [key]: data.final_summary, // APIから返却された統合要約
         }));
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "Perplexity追加処理中にエラーが発生しました。");
+        setPerplexityError(error instanceof Error ? error.message : "Perplexity追加処理中にエラーが発生しました。");
+        console.error(`handleAddPerplexity: Error adding Perplexity for ${key}`, error);
       } finally {
         // 再生成中の状態を false に設定
-        setIsLoading(false); // ローディング状態を終了
+        setIsAddingPerplexity(false); // ローディング状態を終了
       }
     };
   
     // ChatGPTで再生成APIコール関数
     const handleRegenerate = async (key: string) => {
-      setIsLoading(true);
-      setErrorMessage(""); // エラーメッセージをリセット
+      setIsRegenerating(true);
+      setRegenerateError(""); // 再生成のエラーメッセージをリセット
       try {
         // 再生成APIへのリクエストを送信
         const response = await fetch("https://investment-backend.azurewebsites.net/regenerate-summary", {
@@ -206,15 +219,18 @@ const IndexPage = () => {
         }));
         alert(`再生成が完了しました: ${key}`);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "再生成処理中にエラーが発生しました。");
+        setRegenerateError(error instanceof Error ? error.message : "再生成処理中にエラーが発生しました。");
+        console.error(`handleRegenerate: Error regenerating for ${key}`, error);
       } finally {
         // 再生成中の状態を false に設定
-        setIsLoading(false);
+        setIsRegenerating(false);
       }
     };
   
     // Word出力APIコール関数
     const handleWordExport = async () => {
+      setIsExporting(true); // Word出力のローディングを開始
+      setExportError(""); // Word出力のエラーメッセージをリセット
       try {
         console.log("Sending summaries:", summaries);
         console.log("Sending valuation data:", valuationData);
@@ -270,8 +286,10 @@ const IndexPage = () => {
         a.click();
         window.URL.revokeObjectURL(url);
       } catch (error) {
-        console.error(error);
-        setErrorMessage(error instanceof Error ? error.message : "Wordファイル生成中にエラーが発生しました。");
+        setExportError(error instanceof Error ? error.message : "Wordファイル生成中にエラーが発生しました。");
+        console.error("handleWordExport: Error:", error);
+      } finally {
+        setIsExporting(false); // ローディングを終了
       }
     };
 
@@ -324,7 +342,9 @@ const IndexPage = () => {
         return transformedSummaries;
       });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "要約処理中にエラーが発生しました。");
+      setSummarizeError(error instanceof Error ? error.message : "要約処理中にエラーが発生しました。");
+      console.error("handleSummarize: Error:", error);
+      throw error; // エラーを上位に伝搬させる
     }
   };  
   
@@ -370,25 +390,32 @@ const IndexPage = () => {
             { label: "Implied Equity Value", current: data.implied_equity_value_current, forecast: data.implied_equity_value_forecast },
           ]);
         } catch (error) {
-          setErrorMessage(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
+          setValuationError(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
+          console.error("fetchValuationData: Error:", error);
+          throw error; // エラーを上位に伝搬させる
         } finally {
           setIsLoading(false);
         }
       };
 
+      // 調査開始ボタンハンドラー
       const handleSummarizeAndFetch = async () => {
-        setIsLoading(true); // ローディングを開始
-      
+        setIsLoading(true); // 調査開始のローディングを開始
+        setSummarizeError(""); // 要約取得のエラーメッセージをリセット
+        setValuationError(""); // バリュエーションデータ取得のエラーメッセージをリセット
+
         try {
-          // まず handleSummarize を実行
+          console.log("handleSummarizeAndFetch: Start");
           await handleSummarize();
-          // 次に fetchValuationData を実行
+          console.log("handleSummarizeAndFetch: handleSummarize completed");
           await fetchValuationData();
+          console.log("handleSummarizeAndFetch: fetchValuationData completed");
         } catch (error) {
-          console.error("調査中にエラーが発生しました:", error);
-          setErrorMessage(error instanceof Error ? error.message : "調査中にエラーが発生しました。");
+          console.error("handleSummarizeAndFetch: Error:", error);
+          // エラーメッセージは既に設定されているので、ここでは追加の処理は不要
         } finally {
-          setIsLoading(false); // すべての処理が終了したらローディングを終了
+          setIsLoading(false); // 調査開始のローディングを終了
+          console.log("handleSummarizeAndFetch: End");
         }
       };
       
@@ -638,6 +665,7 @@ const IndexPage = () => {
           <button 
             className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900"
             onClick={handleSummarizeAndFetch}
+            disabled={isLoading || isAddingPerplexity || isRegenerating} // 全てのローディング中は無効化
           >
             調査開始
           </button>
@@ -650,7 +678,11 @@ const IndexPage = () => {
     <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
       <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">{companyName} 調査結果</h1>
 
-      {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
+      {/* 各アクションごとのエラーメッセージ表示 */}
+      {summarizeError && <p className="text-red-600 mb-4">要約取得エラー: {summarizeError}</p>}
+      {perplexityError && <p className="text-red-600 mb-4">Perplexity追加エラー: {perplexityError}</p>}
+      {regenerateError && <p className="text-red-600 mb-4">再生成エラー: {regenerateError}</p>}
+      {exportError && <p className="text-red-600 mb-4">Word出力エラー: {exportError}</p>}
 
       <hr className="my-8 border-t-2 border-gray-300" />
 
@@ -674,23 +706,20 @@ const IndexPage = () => {
                 <button
                   onClick={() => handleAddPerplexity(mappedKey)}
                   className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
-                  disabled={isLoading} // 再生成中はボタンを無効化
+                  disabled={isAddingPerplexity} // Perplexityのローディングに依存
                 >
                   Perplexityで要約を追加
+                  {isAddingPerplexity ? "追加中..." : "Perplexityで要約を追加"}
                 </button>
-                {isLoading && <p className="text-blue-500">Perplexityで要約追加中...</p>}
-                {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
 
                 <button
                   onClick={() => handleRegenerate(mappedKey)}
                   className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
-                  disabled={isLoading} // 再生成中はボタンを無効化
+                  disabled={isRegenerating} // 再生成のローディングに依存
                 >
                   ChatGPTで再生成
+                  {isRegenerating ? "再生成中..." : "ChatGPTで再生成"}
                 </button>
-                {isLoading && <p className="text-blue-500 mt-4">ChatGPTで再生成中...</p>} {/* 再生成の表示 */}
-                {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
-
               </div>
             </div>
             <div className="mt-2">
@@ -738,11 +767,11 @@ const IndexPage = () => {
           <button
             onClick={handleWordExport}
             className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
+            disabled={isExporting} // Word出力のローディングに依存
           >
             Word出力
+            {isExporting ? "ダウンロード中..." : "Word出力"}
           </button>
-          {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} {/* エラーメッセージ */}
-
         </div>
 
         <Link href="/" className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 mt-6 text-center block">
