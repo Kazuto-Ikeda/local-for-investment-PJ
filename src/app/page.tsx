@@ -36,8 +36,8 @@ interface IndustryData {
 const IndexPage = () => {
   // 独立したローディング状態
   const [isLoading, setIsLoading] = useState(false); // 調査開始のローディング
-  const [isAddingPerplexity, setIsAddingPerplexity] = useState(false); // Perplexityで要約を追加のローディング
-  const [isRegenerating, setIsRegenerating] = useState(false); // ChatGPTで再生成のローディング
+  const [isAddingPerplexity, setIsAddingPerplexity] = useState<Record<string, boolean>>({});
+  const [isRegenerating, setIsRegenerating] = useState<Record<string, boolean>>({});
   const [isExporting, setIsExporting] = useState(false); // Word出力のローディング
 
   // 各アクションごとのエラーメッセージ状態変数
@@ -146,7 +146,7 @@ const IndexPage = () => {
   
     // Perplexityで生成APIコール関数
     const handleAddPerplexity = async (key: string) => {
-      setIsAddingPerplexity(true); // ローディング状態を開始
+      setIsAddingPerplexity((prev) => ({ ...prev, [key]: true })); // キーごとにローディング状態を開始
       setPerplexityError(""); // Perplexityのエラーメッセージをリセット
       try {
         // Perplexity要約のためのAPIリクエスト
@@ -180,13 +180,13 @@ const IndexPage = () => {
         console.error(`handleAddPerplexity: Error adding Perplexity for ${key}`, error);
       } finally {
         // 再生成中の状態を false に設定
-        setIsAddingPerplexity(false); // ローディング状態を終了
+        setIsAddingPerplexity((prev) => ({ ...prev, [key]: false })); // キーごとにローディング状態を終了
       }
     };
   
     // ChatGPTで再生成APIコール関数
     const handleRegenerate = async (key: string) => {
-      setIsRegenerating(true);
+      setIsRegenerating((prev) => ({ ...prev, [key]: true })); // キーごとにローディング状態を開始
       setRegenerateError(""); // 再生成のエラーメッセージをリセット
       try {
         // 再生成APIへのリクエストを送信
@@ -223,7 +223,7 @@ const IndexPage = () => {
         console.error(`handleRegenerate: Error regenerating for ${key}`, error);
       } finally {
         // 再生成中の状態を false に設定
-        setIsRegenerating(false);
+        setIsRegenerating((prev) => ({ ...prev, [key]: false })); // キーごとにローディング状態を終了
       }
     };
   
@@ -665,9 +665,9 @@ const IndexPage = () => {
           <button 
             className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900"
             onClick={handleSummarizeAndFetch}
-            disabled={isLoading || isAddingPerplexity || isRegenerating} // 全てのローディング中は無効化
+            disabled={isLoading} // 全てのローディング中は無効化
           >
-            調査開始
+            {isLoading ? "調査中..." : "調査開始"}
           </button>
 
           {isLoading && <p className="text-blue-500 mt-4">Loading...</p>} {/* ローディングメッセージ */}
@@ -706,7 +706,7 @@ const IndexPage = () => {
                 <button
                   onClick={() => handleAddPerplexity(mappedKey)}
                   className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
-                  disabled={isAddingPerplexity} // Perplexityのローディングに依存
+                  disabled={isAddingPerplexity[mappedKey]} // Perplexityのローディングに依存
                 >
                   {isAddingPerplexity ? "追加中..." : "Perplexityで要約を追加"}
                 </button>
@@ -714,7 +714,7 @@ const IndexPage = () => {
                 <button
                   onClick={() => handleRegenerate(mappedKey)}
                   className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
-                  disabled={isRegenerating} // 再生成のローディングに依存
+                  disabled={isRegenerating[mappedKey]} // 再生成のローディングに依存
                 >
                   {isRegenerating ? "再生成中..." : "ChatGPTで再生成"}
                 </button>
@@ -776,8 +776,6 @@ const IndexPage = () => {
         </Link>
       </div>
     </div>
-    
-    
   );
 };
 
