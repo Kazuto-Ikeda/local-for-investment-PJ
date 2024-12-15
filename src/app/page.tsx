@@ -233,7 +233,7 @@ const IndexPage = () => {
       setIsRegenerating((prev) => ({ ...prev, [key]: true }));
       setRegenerateError("");
       try {
-        const response = await fetch("https://investment-backend.azurewebsites.net/regenerate-summary", {
+        const response = await fetch("https://investment-backend.azurewebsites.net/summarize/speeda", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -273,7 +273,7 @@ const IndexPage = () => {
       setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: true }));
       setRegeneratePerplexityError("");
       try {
-        const response = await fetch("https://investment-backend.azurewebsites.net/regenerate-perplexity-summary", {
+        const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -390,7 +390,7 @@ const IndexPage = () => {
   // ChatGPTのみの要約処理
   const handleSummarize = async () => {
     try {
-      const response = await fetch("https://investment-backend.azurewebsites.net/summarize", {
+      const response = await fetch("https://investment-backend.azurewebsites.net/summarize/speeda", {
         method: "POST",
         mode: "cors",
         headers: {
