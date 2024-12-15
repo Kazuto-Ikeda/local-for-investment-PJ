@@ -335,12 +335,15 @@ const IndexPage = () => {
         );
 
         // バリュエーションデータをフォーマット
-        const transformedValuationData: Record<string, string> = valuationData.reduce(
+        const transformedValuationData: Record<string, { current: string; forecast: string }> = valuationData.reduce(
           (acc, item) => {
-            acc[item.label] = `現在値: ${item.current ?? "不明"}, 予測値: ${item.forecast ?? "不明"}`;
+            acc[item.label] = {
+              current: item.current !== null ? item.current.toString() : "不明",
+              forecast: item.forecast !== null ? item.forecast.toString() : "不明",
+            };
             return acc;
           },
-          {} as Record<string, string>
+          {} as Record<string, { current: string; forecast: string }>
         );
 
         // エンドポイントにリクエストを送信
@@ -360,7 +363,6 @@ const IndexPage = () => {
             }),
           }
         );
-
         if (!response.ok) {
           const errorDetails = await response.text();
           console.error("Error details:", errorDetails);
@@ -458,7 +460,7 @@ const IndexPage = () => {
     }
   };
 
-  // 調査開始ボタンハンドラー（バリュエーション取得、ChatGPT要約、Perplexity要約を並行して実行）
+  // 調査開始ボタンハンドラー（バリュエーション取得、ChatGPT要約、Perplexity要約を順次実行）
   const handleInvestigate = async () => {
     setIsLoadingInvestigate(true);
     setSummarizeError("");
@@ -466,7 +468,18 @@ const IndexPage = () => {
     setValuationError("");
 
     try {
-      await Promise.all([handleSummarize(), handleSummarizePerplexity(), fetchValuationData()]);
+      // 1. ChatGPTによる要約を実行
+      await handleSummarize();
+      console.log("ChatGPTによる要約が完了しました。");
+
+      // 2. Perplexityによる要約を実行
+      await handleSummarizePerplexity();
+      console.log("Perplexityによる要約が完了しました。");
+
+      // 3. バリュエーションデータを取得
+      await fetchValuationData();
+      console.log("バリュエーションデータの取得が完了しました。");
+
       alert("調査が完了しました。");
     } catch (error) {
       console.error("handleInvestigate: Error:", error);
