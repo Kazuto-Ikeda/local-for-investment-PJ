@@ -876,7 +876,7 @@ const IndexPage = () => {
         <input
           type="text"
           value={equityValueForecast}
-          onChange={(e) => handleRevenueChange(e.target.value, setEquityValueForecast)}
+          onChange={(e) => handleRevenueChange(e.target.value, setEquityValueCurrent)}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           placeholder="例: 45"
           style={{ color: "black" }}
@@ -898,8 +898,6 @@ const IndexPage = () => {
           >
             {isLoadingInvestigate ? "調査中..." : "調査開始"}
           </button>
-
-          {isLoadingInvestigate && <p className="text-[#07061B] mt-4">Loading...</p>} {/* ローディングメッセージ */}
         </div>
         {/* </Link> */}
     </div>
