@@ -28,16 +28,35 @@ interface IndustryData {
   競合と差別化: string;
   Exit先検討: string;
   バリューアップ施策: string;
-  ユースケース: string;
+  "M&A事例": string;
   SWOT分析: string;
+}
+
+interface ValuationOutput {
+  revenue_current: number;
+  revenue_forecast: number;
+  ebitda_current: number | null;
+  ebitda_forecast: number | null;
+  net_debt_current: number;
+  net_debt_forecast: number;
+  equity_value_current: number;
+  equity_value_forecast: number;
+  ev_current: number;
+  ev_forecast: number;
+  entry_multiple_current: string | null;
+  entry_multiple_forecast: string | null;
+  industry_median_multiple_current: string | null;
+  industry_median_multiple_forecast: string | null;
 }
 
 
 const IndexPage = () => {
   // 独立したローディング状態
+  const [isLoadingInvestigate, setIsLoadingInvestigate] = useState(false); // 調査開始のローディング
   const [isLoading, setIsLoading] = useState(false); // 調査開始のローディング
-  const [isAddingPerplexity, setIsAddingPerplexity] = useState<Record<string, boolean>>({});
+  // const [isAddingPerplexity, setIsAddingPerplexity] = useState<Record<string, boolean>>({});
   const [isRegenerating, setIsRegenerating] = useState<Record<string, boolean>>({});
+  const [isRegeneratingPerplexity, setIsRegeneratingPerplexity] = useState<Record<string, boolean>>({});
   const [isExporting, setIsExporting] = useState(false); // Word出力のローディング
 
   // 各アクションごとのエラーメッセージ状態変数
@@ -45,8 +64,13 @@ const IndexPage = () => {
   const [perplexityError, setPerplexityError] = useState("");
   const [regenerateError, setRegenerateError] = useState("");
   const [exportError, setExportError] = useState("");  
-  const [valuationError, setValuationError] = useState("");  
+  const [valuationError, setValuationError] = useState("");
+  const [regeneratePerplexityError, setRegeneratePerplexityError] = useState("");
+  
 
+  // ユーザー入力状態
+  const [perplexitySummaries, setPerplexitySummaries] = useState<Record<string, string>>({});
+  const [chatgptSummaries, setChatgptSummaries] = useState<Record<string, string>>({});
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
@@ -99,6 +123,14 @@ const IndexPage = () => {
     setValue(sanitizedValue);
   };
 
+  const [summaries, setSummaries] = useState<Record<string, string>>({});  
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [valuationData, setValuationData] = useState<
+  { label: string; current: number | string | null; forecast: number | string | null; highlight?: boolean }[]
+>([]);
+
+
   // const queryParams: QueryParams = {
   //   companyName: companyName || "株式会社サンプル",
   //   revenueCurrent: parseFloat(revenueCurrent) || 0,
@@ -120,76 +152,87 @@ const IndexPage = () => {
     // const selectedIndustry = searchParams.get("selectedIndustry");
     // const [isOpenIndustry, setIsOpenIndustry] = useState(false);
     // const [industryData, setIndustryData] = useState<IndustryData | null>(null);
-    const [isOpen, setIsOpen] = useState<Record<string, boolean>>({});
-    const [prompts, setPrompts] = useState<Record<string, string>>({
-      現状: `業界の現状を説明してください。`,
-      将来性と課題: `業界の将来性や抱えている課題を説明してください。`,
-      競合と差別化: `業界の競合情報および株式会社サンプルの差別化要因を教えてください。`,
-      Exit先検討: `株式会社サンプルのExit先はどのような相手が有力でしょうか？`,
-      バリューアップ施策: `株式会社サンプルのバリューアップ施策をDX関連とその他に分けて教えてください。`,
-      ユースケース: `業界のM&A事例について過去実績、将来の見込みを教えてください。`,
-      SWOT分析: `株式会社サンプルのSWOT分析をお願いします。`,
-    });    
-    const [includePerplexity, setIncludePerplexity] = useState(true);
-    const keyMapping: Record<string, string> = {
-      現状: "current_situation",
-      将来性と課題: "future_outlook",
-      競合と差別化: "investment_advantages",
-      Exit先検討: "investment_disadvantages",
-      バリューアップ施策: "value_up",
-      ユースケース: "use_case",
-      SWOT分析: "swot_analysis",
-    };
+  const [isOpen, setIsOpen] = useState<Record<string, boolean>>({});
+  //ChatGPTのプロンプト
+  const [prompts, setPrompts] = useState<Record<string, string>>({
+    現状: `業界の現状を説明してください。`,
+    将来性と課題: `業界の将来性や抱えている課題を説明してください。`,
+    競合と差別化: `業界の競合情報および株式会社サンプルの差別化要因を教えてください。`,
+    Exit先検討: `株式会社サンプルのExit先はどのような相手が有力でしょうか？`,
+    バリューアップ施策: `株式会社サンプルのバリューアップ施策をDX関連とその他に分けて教えてください。`,
+    "M&A事例": `業界のM&A事例について過去実績、将来の見込みを教えてください。`,
+    SWOT分析: `株式会社サンプルのSWOT分析をお願いします。`,
+  });
+
+  //Perplexityのプロンプト
+  const [promptsPerplexity, setPromptsPerplexity] = useState<Record<string, string>>({
+    現状: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。検討にあたり事業内容及び業界について詳しく教えてください。`,
+    将来性と課題: `私たちは投資ファンドを運営しており、△△業界に属する企業の買収を検討しています。業界の趨勢、将来性、抱えている課題について教えてください。`,
+    競合と差別化: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。業界の競合状況及び差別化要因を教えてください。`,
+    Exit先検討: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。Exit先はどのような相手が有力でしょうか。`,
+    バリューアップ施策: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。有力なバリューアップ施策についてDX関連とその他に分けて教えてください。`,
+    "M&A事例": `私たちは投資ファンドを運営しており、△△業界に属する企業の買収を検討しています。業界のM&A事例について過去実績、将来の見込みを教えてください。`,
+    SWOT分析: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。${companyName || "〇〇株式会社"}のSWOT分析をお願いします。難しい場合は業界の一般的なSWOT分析をお願いします。`,
+  });
+
+
+
+  const [includePerplexity, setIncludePerplexity] = useState(true);
+  const keyMapping: Record<string, string> = {
+    現状: "current_situation",
+    将来性と課題: "future_outlook",
+    競合と差別化: "investment_advantages",
+    Exit先検討: "investment_disadvantages",
+    バリューアップ施策: "value_up",
+    "M&A事例": "use_case",
+    SWOT分析: "swot_analysis",
+  };
     
     
   
   
-    // Perplexityで生成APIコール関数
-    const handleAddPerplexity = async (key: string) => {
-      setIsAddingPerplexity((prev) => ({ ...prev, [key]: true })); // キーごとにローディング状態を開始
-      setPerplexityError(""); // Perplexityのエラーメッセージをリセット
-      try {
-        // Perplexity要約のためのAPIリクエスト
-        const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
-          method: "POST",
-          mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            company_name: companyName, // 必要なデータ
-            query_key: key,
-            industry: majorCategory, // 業界情報
-            chatgpt_summary: summaries[key], // 初回要約を送信
-          }),
-        });
-    
-        if (!response.ok) {
-          throw new Error("Perplexityによる要約追加に失敗しました。");
-        }
-    
-        const data = await response.json();
-    
-        // 取得した統合要約を保存
-        setSummaries((prev) => ({
-          ...prev,
-          [key]: data.final_summary, // APIから返却された統合要約
-        }));
-      } catch (error) {
-        setPerplexityError(error instanceof Error ? error.message : "Perplexity追加処理中にエラーが発生しました。");
-        console.error(`handleAddPerplexity: Error adding Perplexity for ${key}`, error);
-      } finally {
-        // 再生成中の状態を false に設定
-        setIsAddingPerplexity((prev) => ({ ...prev, [key]: false })); // キーごとにローディング状態を終了
-      }
-    };
-  
+    // // Perplexityで生成APIコール関数
+    // const handleAddPerplexity = async (key: string) => {
+    //   setIsAddingPerplexity((prev) => ({ ...prev, [key]: true }));
+    //   setPerplexityError("");
+    //   try {
+    //     const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
+    //       method: "POST",
+    //       mode: "cors",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         company_name: companyName,
+    //         query_key: key,
+    //         industry: majorCategory,
+    //         chatgpt_summary: chatgptSummaries[key], // 必要に応じて
+    //       }),
+    //     });
+
+    //     if (!response.ok) {
+    //       throw new Error("Perplexityによる要約追加に失敗しました。");
+    //     }
+
+    //     const data = await response.json();
+
+    //     setPerplexitySummaries((prev) => ({
+    //       ...prev,
+    //       [key]: data.final_summary,
+    //     }));
+    //   } catch (error) {
+    //     setPerplexityError(error instanceof Error ? error.message : "Perplexity追加処理中にエラーが発生しました。");
+    //     console.error(`handleAddPerplexity: Error adding Perplexity for ${key}`, error);
+    //   } finally {
+    //     setIsAddingPerplexity((prev) => ({ ...prev, [key]: false }));
+    //   }
+    // };
+
     // ChatGPTで再生成APIコール関数
     const handleRegenerate = async (key: string) => {
-      setIsRegenerating((prev) => ({ ...prev, [key]: true })); // キーごとにローディング状態を開始
-      setRegenerateError(""); // 再生成のエラーメッセージをリセット
+      setIsRegenerating((prev) => ({ ...prev, [key]: true }));
+      setRegenerateError("");
       try {
-        // 再生成APIへのリクエストを送信
         const response = await fetch("https://investment-backend.azurewebsites.net/regenerate-summary", {
           method: "POST",
           headers: {
@@ -200,51 +243,97 @@ const IndexPage = () => {
             sector: middleCategory,
             category: smallCategory,
             company_name: companyName,
-            include_perplexity: includePerplexity,
+            include_perplexity: false, // ChatGPTのみの要約処理
             query_key: key,
-            custom_query: prompts[key], // カスタムプロンプトを使用
-            perplexity_summary: summaries[key], // 現在のPerplexityサマリーを送信
+            custom_query: prompts[key],
+            // perplexity_summary: perplexitySummaries[key], // 不要
           }),
         });
-    
+
         if (!response.ok) {
           throw new Error("再生成処理に失敗しました。");
         }
-    
-        // 再生成された要約を取得
+
         const data = await response.json();
-        setSummaries((prevSummaries) => ({
+        setChatgptSummaries((prevSummaries) => ({
           ...prevSummaries,
-          [key]: data.final_summary, // 再生成された要約を更新
+          [key]: data.final_summary,
         }));
         alert(`再生成が完了しました: ${key}`);
       } catch (error) {
         setRegenerateError(error instanceof Error ? error.message : "再生成処理中にエラーが発生しました。");
         console.error(`handleRegenerate: Error regenerating for ${key}`, error);
       } finally {
-        // 再生成中の状態を false に設定
-        setIsRegenerating((prev) => ({ ...prev, [key]: false })); // キーごとにローディング状態を終了
+        setIsRegenerating((prev) => ({ ...prev, [key]: false }));
       }
     };
+
+    // Perplexityで再生成APIコール関数
+    const handleRegeneratePerplexity = async (key: string) => {
+      setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: true }));
+      setRegeneratePerplexityError("");
+      try {
+        const response = await fetch("https://investment-backend.azurewebsites.net/regenerate-perplexity-summary", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            company_name: companyName,
+            query_key: key,
+            industry: majorCategory,
+            business_description: businessDescription,
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error("Perplexity再生成処理に失敗しました。");
+        }
+  
+        const data = await response.json();
+        setPerplexitySummaries((prevSummaries) => ({
+          ...prevSummaries,
+          [key]: data.final_summary,
+        }));
+        alert(`Perplexity再生成が完了しました: ${key}`);
+      } catch (error) {
+        setRegeneratePerplexityError(error instanceof Error ? error.message : "Perplexity再生成処理中にエラーが発生しました。");
+        console.error(`handleRegeneratePerplexity: Error regenerating Perplexity for ${key}`, error);
+      } finally {
+        setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: false }));
+      }
+    };
+
   
     // Word出力APIコール関数
     const handleWordExport = async () => {
-      setIsExporting(true); // Word出力のローディングを開始
-      setExportError(""); // Word出力のエラーメッセージをリセット
+      setIsExporting(true);
+      setExportError("");
       try {
-        console.log("Sending summaries:", summaries);
+        console.log("Sending Perplexity summaries:", perplexitySummaries);
+        console.log("Sending ChatGPT summaries:", chatgptSummaries);
         console.log("Sending valuation data:", valuationData);
-    
-        // 日本語キーに変換した要約データを生成
-        const transformedSummaries: Record<string, string> = Object.entries(summaries).reduce(
+
+        // 日本語キーに変換したPerplexity要約データを生成
+        const transformedPerplexitySummaries: Record<string, string> = Object.entries(perplexitySummaries).reduce(
           (acc, [key, value]) => {
             const japaneseKey = Object.keys(keyMapping).find((k) => keyMapping[k] === key) || key;
-            acc[japaneseKey] = value || "内容がありません"; // データが空の場合のフォールバック
+            acc[japaneseKey] = value || "内容がありません";
             return acc;
           },
           {} as Record<string, string>
         );
-    
+
+        // 日本語キーに変換したChatGPT要約データを生成
+        const transformedChatgptSummaries: Record<string, string> = Object.entries(chatgptSummaries).reduce(
+          (acc, [key, value]) => {
+            const japaneseKey = Object.keys(keyMapping).find((k) => keyMapping[k] === key) || key;
+            acc[japaneseKey] = value || "内容がありません";
+            return acc;
+          },
+          {} as Record<string, string>
+        );
+
         // バリュエーションデータをフォーマット
         const transformedValuationData: Record<string, string> = valuationData.reduce(
           (acc, item) => {
@@ -253,7 +342,7 @@ const IndexPage = () => {
           },
           {} as Record<string, string>
         );
-    
+
         // エンドポイントにリクエストを送信
         const response = await fetch(
           `https://investment-backend.azurewebsites.net/word_export?company_name=${encodeURIComponent(companyName)}`,
@@ -263,18 +352,21 @@ const IndexPage = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              summaries: transformedSummaries, // 日本語のキーで送信
-              valuation_data: transformedValuationData, // フォーマット済みのバリュエーションデータ
+              summaries: {
+                Perplexity: transformedPerplexitySummaries,
+                ChatGPT: transformedChatgptSummaries,
+              },
+              valuation_data: transformedValuationData,
             }),
           }
         );
-    
+
         if (!response.ok) {
           const errorDetails = await response.text();
           console.error("Error details:", errorDetails);
           throw new Error("Wordファイルの生成に失敗しました。");
         }
-    
+
         // レスポンスからWordファイルをダウンロード
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -289,18 +381,11 @@ const IndexPage = () => {
         setExportError(error instanceof Error ? error.message : "Wordファイル生成中にエラーが発生しました。");
         console.error("handleWordExport: Error:", error);
       } finally {
-        setIsExporting(false); // ローディングを終了
+        setIsExporting(false);
       }
-    };
-
-    const [summaries, setSummaries] = useState<Record<string, string>>({});  
-    const [errorMessage, setErrorMessage] = useState("");
-
-    const [valuationData, setValuationData] = useState<
-    { label: string; current: number | null; forecast: number | null; highlight?: boolean }[]
-  >([]);
+    };  
   
-  
+  // ChatGPTのみの要約処理
   const handleSummarize = async () => {
     try {
       const response = await fetch("https://investment-backend.azurewebsites.net/summarize", {
@@ -314,18 +399,16 @@ const IndexPage = () => {
           sector: middleCategory,
           category: smallCategory,
           company_name: companyName,
-          include_perplexity: includePerplexity,
+          include_perplexity: false, // Perplexityを含まない
         }),
       });
-  
+
       if (!response.ok) {
-        throw new Error("要約データの取得に失敗しました。");
+        throw new Error("ChatGPTによる要約データの取得に失敗しました。");
       }
-  
+
       const data: { summaries: Record<string, { chatgpt_summary: string }> } = await response.json();
-  
-      console.log("Fetched summaries (raw):", data.summaries);
-  
+
       const transformedSummaries: Record<string, string> = Object.entries(data.summaries).reduce(
         (acc, [key, value]) => {
           acc[key] = value.chatgpt_summary;
@@ -333,91 +416,189 @@ const IndexPage = () => {
         },
         {} as Record<string, string>
       );
-  
-      console.log("Transformed summaries:", transformedSummaries);
-  
-      setSummaries((prev) => {
-        console.log("Previous summaries:", prev);
-        console.log("New summaries being set:", transformedSummaries);
-        return transformedSummaries;
-      });
+
+      setChatgptSummaries(transformedSummaries);
     } catch (error) {
-      setSummarizeError(error instanceof Error ? error.message : "要約処理中にエラーが発生しました。");
+      setSummarizeError(error instanceof Error ? error.message : "ChatGPT要約処理中にエラーが発生しました。");
       console.error("handleSummarize: Error:", error);
       throw error; // エラーを上位に伝搬させる
     }
-  };  
+  };
+
+  // Perplexityのみの要約処理
+  const handleSummarizePerplexity = async () => {
+    try {
+      const industryName = smallCategory || "△△業界"; // 動的に業界名を設定
+
+      const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company_name: companyName,
+          industry: industryName,
+          business_description: businessDescription,
+          // 他に必要なパラメータがあれば追加
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Perplexityによる要約データの取得に失敗しました。");
+      }
+
+      const data: { summaries: Record<string, string> } = await response.json();
+
+      setPerplexitySummaries(data.summaries);
+    } catch (error) {
+      setPerplexityError(error instanceof Error ? error.message : "Perplexity要約処理中にエラーが発生しました。");
+      console.error("handleSummarizePerplexity: Error:", error);
+      throw error;
+    }
+  };
+
+  // 調査開始ボタンハンドラー（バリュエーション取得、ChatGPT要約、Perplexity要約を並行して実行）
+  const handleInvestigate = async () => {
+    setIsLoadingInvestigate(true);
+    setSummarizeError("");
+    setPerplexityError("");
+    setValuationError("");
+
+    try {
+      await Promise.all([handleSummarize(), handleSummarizePerplexity(), fetchValuationData()]);
+      alert("調査が完了しました。");
+    } catch (error) {
+      console.error("handleInvestigate: Error:", error);
+      // 各エラーメッセージは既に設定されているため、ここでは追加の処理は不要
+    } finally {
+      setIsLoadingInvestigate(false);
+    }
+  };
+
+  // バリュエーションデータ取得関数（既存）
+  const fetchValuationData = async () => {
+    try {
+      const payload = {
+        revenue_current: parseFloat(revenueCurrent) || 0,
+        revenue_forecast: parseFloat(revenueForecast) || 0,
+        ebitda_current: ebitdaCurrent ? parseFloat(ebitdaCurrent) : null,
+        ebitda_forecast: ebitdaForecast ? parseFloat(ebitdaForecast) : null,
+        net_debt_current: parseFloat(netDebtCurrent) || 0,
+        equity_value_current: parseFloat(equityValueCurrent) || 0,
+        category: smallCategory,
+      };
+
+      const response = await fetch("https://investment-backend.azurewebsites.net/valuation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorDetails = await response.text();
+        console.error("Error details:", errorDetails);
+        throw new Error("バリュエーションデータの取得に失敗しました。");
+      }
+
+      const data: ValuationOutput = await response.json();
+      console.log("Response data:", data);
+      setValuationData([
+        { label: "売上", current: data.revenue_current, forecast: data.revenue_forecast },
+        { label: "EBITDA", current: data.ebitda_current, forecast: data.ebitda_forecast },
+        { label: "NetDebt", current: data.net_debt_current, forecast: data.net_debt_forecast },
+        { label: "想定EquityValue", current: data.equity_value_current, forecast: data.equity_value_forecast },
+        { label: "EV", current: data.ev_current, forecast: data.ev_forecast, highlight: true },
+        { label: "エントリーマルチプル", current: data.entry_multiple_current, forecast: data.entry_multiple_forecast, highlight: true },
+        { label: "マルチプル業界中央値", current: data.industry_median_multiple_current, forecast: data.industry_median_multiple_forecast },
+        // { label: "Implied Equity Value", current: data.implied_equity_value_current, forecast: data.implied_equity_value_forecast },
+        // { label: "Implied EV", current: data.implied_ev_current, forecast: data.implied_ev_forecast },
+      ]);
+    } catch (error) {
+      setValuationError(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
+      console.error("fetchValuationData: Error:", error);
+      throw error; // エラーを上位に伝搬させる
+    }
+  };
   
-      // バリュエーションデータ取得関数
-      const fetchValuationData = async () => {
-        setIsLoading(true);
+  
 
-        try {
-          const test = JSON.stringify({
-            revenue_current: parseFloat(revenueCurrent) || 0,
-            revenue_forecast: parseFloat(revenueForecast) || 0,
-            ebitda_current: ebitdaCurrent ? parseFloat(ebitdaCurrent) : null,
-            ebitda_forecast: ebitdaForecast ? parseFloat(ebitdaForecast) : null,
-            net_debt_current: parseFloat(netDebtCurrent) || 0,
-            equity_value_current: parseFloat(equityValueCurrent) || 0,
-            category: smallCategory,
-          })
-          console.log(test)
-          const response = await fetch("https://investment-backend.azurewebsites.net/valuation", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: test
-          });
+
+  
+      // // バリュエーションデータ取得関数
+      // const fetchValuationData = async () => {
+      //   setIsLoading(true);
+
+      //   try {
+      //     const test = JSON.stringify({
+      //       revenue_current: parseFloat(revenueCurrent) || 0,
+      //       revenue_forecast: parseFloat(revenueForecast) || 0,
+      //       ebitda_current: ebitdaCurrent ? parseFloat(ebitdaCurrent) : null,
+      //       ebitda_forecast: ebitdaForecast ? parseFloat(ebitdaForecast) : null,
+      //       net_debt_current: parseFloat(netDebtCurrent) || 0,
+      //       equity_value_current: parseFloat(equityValueCurrent) || 0,
+      //       category: smallCategory,
+      //     })
+      //     console.log(test)
+      //     const response = await fetch("https://investment-backend.azurewebsites.net/valuation", {
+      //       method: "POST",
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //       },
+      //       body: test
+      //     });
       
-          if (!response.ok) {
-            const errorDetails = await response.text();
-            console.error("Error details:", errorDetails);
-            console.log(smallCategory);
-            throw new Error("バリュエーションデータの取得に失敗しました。");
-          }
+      //     if (!response.ok) {
+      //       const errorDetails = await response.text();
+      //       console.error("Error details:", errorDetails);
+      //       console.log(smallCategory);
+      //       throw new Error("バリュエーションデータの取得に失敗しました。");
+      //     }
       
-          const data = await response.json();
-          console.log("Response data:", data)
-          setValuationData([
-            { label: "EBITDA", current: data.ebitda_current, forecast: data.ebitda_forecast },
-            { label: "NetDebt", current: data.net_debt_current, forecast: data.net_debt_forecast },
-            { label: "想定EquityValue", current: data.equity_value_current, forecast: data.equity_value_forecast },
-            { label: "EV", current: data.ev_current, forecast: data.ev_forecast, highlight: true },
-            { label: "エントリーマルチプル", current: data.entry_multiple_current, forecast: data.entry_multiple_forecast },
-            { label: "マルチプル業界中央値", current: data.industry_median_multiple_current, forecast: data.industry_median_multiple_forecast },
-            { label: "Implied Equity Value", current: data.implied_equity_value_current, forecast: data.implied_equity_value_forecast },
-          ]);
-        } catch (error) {
-          setValuationError(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
-          console.error("fetchValuationData: Error:", error);
-          throw error; // エラーを上位に伝搬させる
-        } finally {
-          setIsLoading(false);
-        }
-      };
+      //     const data = await response.json();
+      //     console.log("Response data:", data)
+      //     setValuationData([
+      //       { label: "売上", current: data.revenue_current, forecast: data.revenue_forecast },
+      //       { label: "EBITDA", current: data.ebitda_current, forecast: data.ebitda_forecast },
+      //       { label: "NetDebt", current: data.net_debt_current, forecast: data.net_debt_forecast },
+      //       { label: "想定EquityValue", current: data.equity_value_current, forecast: data.equity_value_forecast },
+      //       { label: "EV", current: data.ev_current, forecast: data.ev_forecast, highlight: true },
+      //       { label: "エントリーマルチプル", current: data.entry_multiple_current, forecast: data.entry_multiple_forecast },
+      //       { label: "マルチプル業界中央値", current: data.industry_median_multiple_current, forecast: data.industry_median_multiple_forecast },
+      //       // { label: "Implied Equity Value", current: data.implied_equity_value_current, forecast: data.implied_equity_value_forecast },
+      //       // { label: "Implied EV", current: data.implied_ev_current, forecast: data.implied_ev_forecast },
+      //     ]);
+      //   } catch (error) {
+      //     setValuationError(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
+      //     console.error("fetchValuationData: Error:", error);
+      //     throw error; // エラーを上位に伝搬させる
+      //   } finally {
+      //     setIsLoading(false);
+      //   }
+      // };
 
-      // 調査開始ボタンハンドラー
-      const handleSummarizeAndFetch = async () => {
-        setIsLoading(true); // 調査開始のローディングを開始
-        setSummarizeError(""); // 要約取得のエラーメッセージをリセット
-        setValuationError(""); // バリュエーションデータ取得のエラーメッセージをリセット
+      // // 調査開始ボタンハンドラー
+      // const handleSummarizeAndFetch = async () => {
+      //   setIsLoading(true); // 調査開始のローディングを開始
+      //   setSummarizeError(""); // 要約取得のエラーメッセージをリセット
+      //   setValuationError(""); // バリュエーションデータ取得のエラーメッセージをリセット
 
-        try {
-          console.log("handleSummarizeAndFetch: Start");
-          await handleSummarize();
-          console.log("handleSummarizeAndFetch: handleSummarize completed");
-          await fetchValuationData();
-          console.log("handleSummarizeAndFetch: fetchValuationData completed");
-        } catch (error) {
-          console.error("handleSummarizeAndFetch: Error:", error);
-          // エラーメッセージは既に設定されているので、ここでは追加の処理は不要
-        } finally {
-          setIsLoading(false); // 調査開始のローディングを終了
-          console.log("handleSummarizeAndFetch: End");
-        }
-      };
+      //   try {
+      //     console.log("handleSummarizeAndFetch: Start");
+      //     await handleSummarize();
+      //     console.log("handleSummarizeAndFetch: handleSummarize completed");
+      //     await fetchValuationData();
+      //     console.log("handleSummarizeAndFetch: fetchValuationData completed");
+      //   } catch (error) {
+      //     console.error("handleSummarizeAndFetch: Error:", error);
+      //     // エラーメッセージは既に設定されているので、ここでは追加の処理は不要
+      //   } finally {
+      //     setIsLoading(false); // 調査開始のローディングを終了
+      //     console.log("handleSummarizeAndFetch: End");
+      //   }
+      // };
       
       
 
@@ -430,16 +611,30 @@ const IndexPage = () => {
     
   useEffect(() => {
     console.log("Summaries after rendering:", summaries);    // companyName の変更を反映
+    console.log("Perplexity Summaries after rendering:", perplexitySummaries);
+
     setPrompts({
       現状: `業界の現状を説明してください。`,
       将来性と課題: `業界の将来性や抱えている課題を説明してください。`,
       競合と差別化: `業界の競合情報および${companyName || "株式会社サンプル"}の差別化要因を教えてください。`,
       Exit先検討: `${companyName || "株式会社サンプル"}のExit先はどのような相手が有力でしょうか？`,
       バリューアップ施策: `${companyName || "株式会社サンプル"}のバリューアップ施策をDX関連とその他に分けて教えてください。`,
-      ユースケース: `業界のM&A事例について過去実績、将来の見込みを教えてください。`,
+      "M&A事例": `業界のM&A事例について過去実績、将来の見込みを教えてください。`,
       SWOT分析: `${companyName || "株式会社サンプル"}のSWOT分析をお願いします。`,
     });
-  }, [companyName],); // companyName の変更を監視
+
+    const industryName = smallCategory || "△△業界";
+
+    setPromptsPerplexity({
+      現状: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。検討にあたり事業内容及び業界について詳しく教えてください。`,
+      将来性と課題: `私たちは投資ファンドを運営しており、${industryName}に属する企業の買収を検討しています。業界の趨勢、将来性、抱えている課題について教えてください。`,
+      競合と差別化: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。業界の競合状況及び差別化要因を教えてください。`,
+      Exit先検討: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。Exit先はどのような相手が有力でしょうか。`,
+      バリューアップ施策: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。有力なバリューアップ施策についてDX関連とその他に分けて教えてください。`,
+      "M&A事例": `私たちは投資ファンドを運営しており、${industryName}に属する企業の買収を検討しています。業界のM&A事例について過去実績、将来の見込みを教えてください。`,
+      SWOT分析: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。${companyName || "〇〇株式会社"}のSWOT分析をお願いします。難しい場合は業界の一般的なSWOT分析をお願いします。`,
+    });
+  }, [companyName, businessDescription, smallCategory]); // companyName, businessDescription, smallCategory の変更を監視
 
     const toggleSection = (key: string) => {
       setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -461,9 +656,9 @@ const IndexPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center pt-12">
       <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">FundamentAI β版</h1>
+        <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">A3 AI Reconnoiter</h1>
 
         <div className="grid grid-cols-2 gap-8">
           <div className="col-span-2">
@@ -499,13 +694,12 @@ const IndexPage = () => {
           <div className="col-span-2">
             <label className="block mb-4">
               <span className="text-gray-700">事業内容</span>
-              <textarea
+              <input
                 value={businessDescription}
                 onChange={(e) => setBusinessDescription(e.target.value)}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 placeholder="例: ソフトウェア開発、ITコンサルティング"
                 style={{ color: "black" }}
-                rows={4}
               />
             </label>
           </div>
@@ -572,12 +766,19 @@ const IndexPage = () => {
           )}
         </div>
 
+    <div>
+      <label className="block pt-10">
+        <span className="text-gray-700">バリュエーション（百万円）</span>
+      </label>
+    </div>
+
     {/* 財務データ入力 */}
-    <div className="grid grid-cols-2 gap-8 mt-8">
+    <div className="grid grid-cols-2 gap-8 mt-4">
+
     {/* 売上 */}
     <div>
       <label className="block mb-4">
-        <span className="text-gray-700">売上（直近期, 百万円）</span>
+        <span className="text-gray-700">売上（直近期）</span>
         <input
           type="text"
           value={revenueCurrent}
@@ -590,7 +791,7 @@ const IndexPage = () => {
     </div>
     <div>
       <label className="block mb-4">
-        <span className="text-gray-700">売上（進行期見込, 百万円）</span>
+        <span className="text-gray-700">売上（進行期見込）</span>
         <input
           type="text"
           value={revenueForecast}
@@ -604,7 +805,7 @@ const IndexPage = () => {
     {/* EBITDA */}
     <div>
       <label className="block mb-4">
-        <span className="text-gray-700">EBITDA（直近期, 百万円）</span>
+        <span className="text-gray-700">EBITDA（直近期）</span>
         <input
           type="text"
           value={ebitdaCurrent}
@@ -617,7 +818,7 @@ const IndexPage = () => {
     </div>
     <div>
       <label className="block mb-4">
-        <span className="text-gray-700">EBITDA（進行期見込, 百万円）</span>
+        <span className="text-gray-700">EBITDA（進行期見込）</span>
         <input
           type="text"
           value={ebitdaForecast}
@@ -630,8 +831,8 @@ const IndexPage = () => {
     </div>
     {/* NetDebt */}
     <div>
-      <label className="block mb-4">
-        <span className="text-gray-700">NetDebt（直近期, 百万円）</span>
+      <label className="block mb-20">
+        <span className="text-gray-700">NetDebt（直近期）</span>
         <input
           type="text"
           value={netDebtCurrent}
@@ -643,8 +844,8 @@ const IndexPage = () => {
       </label>
     </div>
     <div>
-      <label className="block mb-4">
-        <span className="text-gray-700">想定EquityValue（百万円）</span>
+      <label className="block mb-20">
+        <span className="text-gray-700">想定EquityValue</span>
         <input
           type="text"
           value={equityValueForecast}
@@ -662,61 +863,107 @@ const IndexPage = () => {
             pathname: "/report",
           }}
         > */}
-          <button 
-            className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900"
-            onClick={handleSummarizeAndFetch}
-            disabled={isLoading} // 全てのローディング中は無効化
+        <div className="flex justify-center mt-6">
+          <button
+            className="w-1/2 bg-[#CCCCCC] text-white py-4 rounded-md font-bold hover:bg-[#07061B]"
+            onClick={handleInvestigate}
+            disabled={isLoadingInvestigate} // 全てのローディング中は無効化
           >
             {isLoading ? "調査中..." : "調査開始"}
           </button>
 
-          {isLoading && <p className="text-blue-500 mt-4">Loading...</p>} {/* ローディングメッセージ */}
-
+          {isLoading && <p className="text-[#07061B] mt-4">Loading...</p>} {/* ローディングメッセージ */}
+        </div>
         {/* </Link> */}
     </div>
       
-    <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
+    {/* 調査結果セクション */}
+    <div className="bg-white p-12 rounded-lg shadow-md w-2/3 mt-12 mb-12">
       <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">{companyName} 調査結果</h1>
 
       {/* 各アクションごとのエラーメッセージ表示 */}
       {summarizeError && <p className="text-red-600 mb-4">要約取得エラー: {summarizeError}</p>}
-      {perplexityError && <p className="text-red-600 mb-4">Perplexity追加エラー: {perplexityError}</p>}
-      {regenerateError && <p className="text-red-600 mb-4">再生成エラー: {regenerateError}</p>}
+      {perplexityError && <p className="text-red-600 mb-4">Perplexity要約エラー: {perplexityError}</p>}
+      {regenerateError && <p className="text-red-600 mb-4">ChatGPT再生成エラー: {regenerateError}</p>}
+      {regeneratePerplexityError && <p className="text-red-600 mb-4">Perplexity再生成エラー: {regeneratePerplexityError}</p>}
       {exportError && <p className="text-red-600 mb-4">Word出力エラー: {exportError}</p>}
+      {valuationError && <p className="text-red-600 mb-4">バリュエーションエラー: {valuationError}</p>}
 
       <hr className="my-8 border-t-2 border-gray-300" />
 
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT（＋Perplexity）要約分析</h2>
+      {/* Perplexity分析セクション */}
+      <h2 className="text-2xl font-bold text-gray-800 mb-4 pb-4">Perplexity 分析</h2>
 
       {/* データが取得できた場合 */}
       {Object.keys(prompts).map((key, index) => {
         const mappedKey = keyMapping[key]; // 日本語キーを英語キーに変換
-        const summary = summaries[mappedKey]; // summariesからデータを取得
+        const summary = perplexitySummaries[mappedKey]; // summariesからデータを取得
 
         return (
-          <div key={key} className="mb-6">
+          <div key={key} className="mb-5">
             <div className="flex justify-between items-center">
               <h2
-                className="text-xl font-bold text-gray-700 cursor-pointer"
+                //boldからnormalに変更
+                className="text-xl font-normal text-gray-700 cursor-pointer"
                 onClick={() => toggleSection(key)}
               >
                 {index + 1} {key} {isOpen[key] ? "▲" : "▼"}
               </h2>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => handleAddPerplexity(mappedKey)}
-                  className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
-                  disabled={isAddingPerplexity[mappedKey] || false} // Perplexityのローディングに依存
+                  onClick={() => handleRegeneratePerplexity(mappedKey)}
+                  //700:800を500:700に変更
+                  className="bg-[#999999] text-white py-1 px-4 rounded-md hover:bg-[#404040]"
+                  disabled={isRegeneratingPerplexity[mappedKey] || false} // Perplexityのローディングに依存
                 >
-                  {isAddingPerplexity[mappedKey] ? "追加中..." : "Perplexityで要約を追加"}
+                  {isRegeneratingPerplexity[mappedKey] ? "再生成中..." : "再生成"}
                 </button>
+              </div>
+            </div>
+            <div className="mt-2">
+              <input
+                type="text"
+                value={promptsPerplexity[key]}
+                onChange={(e) => setPromptsPerplexity({ ...promptsPerplexity, [key]: e.target.value })}
+                className="block w-full p-2 border border-gray-300 rounded-md text-black"
+              />
+            </div>
+            {isOpen[key] && (
+              <p className="text-base text-gray-800 mt-4">
+                {summary || "データがありません"}
+              </p>
+            )}
+          </div>
+        );
+      })}
+
+      {/* ChatGPT分析セクション */}
+      <h2 className="text-2xl font-bold text-gray-800 mb-4 pt-12 pb-4">ChatGPT+SPEEDA 分析</h2>
+
+      {/* データが取得できた場合 */}
+      {Object.keys(prompts).map((key, index) => {
+        const mappedKey = keyMapping[key]; // 日本語キーを英語キーに変換
+        const summary = chatgptSummaries[mappedKey]; // summariesからデータを取得
+
+        return (
+          <div key={key} className="mb-5">
+            <div className="flex justify-between items-center">
+              <h2
+                //boldからnormalに変更
+                className="text-xl font-normal text-gray-700 cursor-pointer"
+                onClick={() => toggleSection(key)}
+              >
+                {index + 1} {key} {isOpen[key] ? "▲" : "▼"}
+              </h2>
+              <div className="flex space-x-2">
 
                 <button
                   onClick={() => handleRegenerate(mappedKey)}
-                  className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
+                  //700:800を500:700に変更
+                  className="bg-[#999999] text-white py-1 px-4 rounded-md hover:bg-[#404040]"
                   disabled={isRegenerating[mappedKey] || false} // 再生成のローディングに依存
                 >
-                  {isRegenerating[mappedKey] ? "再生成中..." : "ChatGPTで再生成"}
+                  {isRegenerating[mappedKey] ? "再生成中..." : "再生成"}
                 </button>
               </div>
             </div>
@@ -737,43 +984,47 @@ const IndexPage = () => {
         );
       })}
 
-        {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
+      {/* バリュエーションセクション */}
+      {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
 
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
-          <table className="min-w-full bg-white border border-gray-300 mt-4">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">項目</th>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">直近実績</th>
-                <th className="py-2 px-4 border-b bg-gray-600 text-gray-200 text-left">進行期見込</th>
+      <div className="mb-6 pt-10">
+        <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
+        <table className="min-w-full bg-white border border-gray-300 mt-4">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b bg-[#EFEFEF] text-black text-left">項目</th>
+              <th className="py-2 px-4 border-b bg-[#EFEFEF] text-black text-left">直近実績</th>
+              <th className="py-2 px-4 border-b bg-[#EFEFEF] text-black text-left">進行期見込</th>
+            </tr>
+          </thead>
+          <tbody>
+            {valuationData.map((item, index) => (
+              <tr key={index} className={item.highlight ? "bg-[#D0EEFB]" : ""}>
+                <td className="py-2 px-4 border-b text-black">{item.label}</td>
+                <td className="py-2 px-4 border-b text-black">{item.current}</td>
+                <td className="py-2 px-4 border-b text-black">{item.forecast}</td>
               </tr>
-            </thead>
-            <tbody>
-              {valuationData.map((item, index) => (
-                <tr key={index} className={item.highlight ? "bg-indigo-100" : ""}>
-                  <td className="py-2 px-4 border-b text-black">{item.label}</td>
-                  <td className="py-2 px-4 border-b text-black">{item.current}</td>
-                  <td className="py-2 px-4 border-b text-black">{item.forecast}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={handleWordExport}
-            className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
-            disabled={isExporting} // Word出力のローディングに依存
-          >
-            {isExporting ? "ダウンロード中..." : "Word出力"}
-          </button>
-        </div>
+      {/* Word出力 */}
+      <div className="flex justify-center mt-20">
+        <button
+          onClick={handleWordExport}
+          className="w-1/2 bg-[#CCCCCC] text-white py-4 rounded-md font-bold hover:bg-[#07061B]"
+          disabled={isExporting} // Word出力のローディングに依存
+        >
+          {isExporting ? "ダウンロード中..." : "出力する（Word）"}
+        </button>
+      </div>
 
-        <Link href="/" className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 mt-6 text-center block">
-          戻る
-        </Link>
+        <div className="flex justify-center mt-0.5">
+          <Link href="/" className="w-1/2 bg-white text-[#07061B] py-2 rounded-md border border-[#07061B] hover:bg-[#07061B] hover:text-white mt-6 text-center block">
+            戻る
+          </Link>
+        </div>
       </div>
     </div>
   );
