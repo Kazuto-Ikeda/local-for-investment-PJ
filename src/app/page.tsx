@@ -243,9 +243,8 @@ const IndexPage = () => {
             sector: middleCategory,
             category: smallCategory,
             company_name: companyName,
-            include_perplexity: false, // ChatGPTのみの要約処理
-            query_key: key,
-            custom_query: prompts[key],
+            query_type: key, // 修正: query_key → query_type
+            prompt: prompts[key], // 修正: custom_query → prompt
             // perplexity_summary: perplexitySummaries[key], // 不要
           }),
         });
@@ -257,7 +256,7 @@ const IndexPage = () => {
         const data = await response.json();
         setChatgptSummaries((prevSummaries) => ({
           ...prevSummaries,
-          [key]: data.final_summary,
+          [key]: data[key],
         }));
         alert(`再生成が完了しました: ${key}`);
       } catch (error) {
@@ -279,10 +278,8 @@ const IndexPage = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            company_name: companyName,
-            query_key: key,
-            industry: majorCategory,
-            business_description: businessDescription,
+            query_type: key, // 修正: query_key → query_type
+            prompt: promptsPerplexity[key], // 修正: custom_query → prompt
           }),
         });
   
@@ -293,7 +290,7 @@ const IndexPage = () => {
         const data = await response.json();
         setPerplexitySummaries((prevSummaries) => ({
           ...prevSummaries,
-          [key]: data.final_summary,
+          [key]: data[key],
         }));
         alert(`Perplexity再生成が完了しました: ${key}`);
       } catch (error) {
@@ -387,78 +384,95 @@ const IndexPage = () => {
       }
     };  
   
-  // ChatGPTのみの要約処理
-  const handleSummarize = async () => {
-    try {
-      const response = await fetch("https://investment-backend.azurewebsites.net/summarize/speeda", {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          industry: majorCategory,
-          sector: middleCategory,
-          category: smallCategory,
-          company_name: companyName,
-          include_perplexity: false, // Perplexityを含まない
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("ChatGPTによる要約データの取得に失敗しました。");
+    // ChatGPTサマリー
+    const handleSummarize = async () => {
+      setSummarizeError(""); // エラーメッセージをリセット
+    
+      for (const key of Object.keys(prompts)) {
+        const custom_query = prompts[key];
+        const query_key = keyMapping[key];
+    
+        setIsRegenerating((prev) => ({ ...prev, [query_key]: true }));
+    
+        try {
+          const response = await fetch("https://investment-backend.azurewebsites.net/summarize/speeda", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              industry: majorCategory,
+              sector: middleCategory,
+              category: smallCategory,
+              query_type: query_key, // 修正: query_key → query_type
+              prompt: custom_query, // 修正: custom_query → prompt
+            }),
+          });
+    
+          if (!response.ok) {
+            throw new Error(`ChatGPTによる要約データの取得に失敗しました: ${key}`);
+          }
+    
+          const data = await response.json();
+    
+          setChatgptSummaries((prevSummaries) => ({
+            ...prevSummaries,
+            [query_key]: data[query_key] || "内容がありません",
+          }));
+        } catch (error) {
+          setSummarizeError(
+            (prev) => `${prev}\n${error instanceof Error ? error.message : "ChatGPT要約処理中にエラーが発生しました。"}`
+          );
+          console.error(`handleSummarize: Error processing ${key}:`, error);
+        } finally {
+          setIsRegenerating((prev) => ({ ...prev, [query_key]: false }));
+        }
       }
-
-      const data: { summaries: Record<string, { chatgpt_summary: string }> } = await response.json();
-
-      const transformedSummaries: Record<string, string> = Object.entries(data.summaries).reduce(
-        (acc, [key, value]) => {
-          acc[key] = value.chatgpt_summary;
-          return acc;
-        },
-        {} as Record<string, string>
-      );
-
-      setChatgptSummaries(transformedSummaries);
-    } catch (error) {
-      setSummarizeError(error instanceof Error ? error.message : "ChatGPT要約処理中にエラーが発生しました。");
-      console.error("handleSummarize: Error:", error);
-      throw error; // エラーを上位に伝搬させる
-    }
-  };
+    };
 
   // Perplexityのみの要約処理
   const handleSummarizePerplexity = async () => {
-    try {
-      const industryName = smallCategory || "△△業界"; // 動的に業界名を設定
-
-      const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          company_name: companyName,
-          industry: industryName,
-          business_description: businessDescription,
-          // 他に必要なパラメータがあれば追加
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Perplexityによる要約データの取得に失敗しました。");
+    setPerplexityError(""); // エラーメッセージをリセット
+  
+    for (const key of Object.keys(promptsPerplexity)) {
+      const custom_query = promptsPerplexity[key];
+      const query_key = keyMapping[key];
+  
+      setIsRegeneratingPerplexity((prev) => ({ ...prev, [query_key]: true }));
+  
+      try {
+        const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query_type: query_key, // 修正: query_key → query_type
+            prompt: custom_query, // 修正: custom_query → prompt
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Perplexityによる要約データの取得に失敗しました: ${key}`);
+        }
+  
+        const data = await response.json();
+  
+        setPerplexitySummaries((prevSummaries) => ({
+          ...prevSummaries,
+          [query_key]: data[query_key] || "内容がありません",
+        }));
+      } catch (error) {
+        setPerplexityError(
+          (prev) => `${prev}\n${error instanceof Error ? error.message : "Perplexity要約処理中にエラーが発生しました。"}`
+        );
+        console.error(`handleSummarizePerplexity: Error processing ${key}:`, error);
+      } finally {
+        setIsRegeneratingPerplexity((prev) => ({ ...prev, [query_key]: false }));
       }
-
-      const data: { summaries: Record<string, string> } = await response.json();
-
-      setPerplexitySummaries(data.summaries);
-    } catch (error) {
-      setPerplexityError(error instanceof Error ? error.message : "Perplexity要約処理中にエラーが発生しました。");
-      console.error("handleSummarizePerplexity: Error:", error);
-      throw error;
     }
   };
+
 
   // 調査開始ボタンハンドラー（バリュエーション取得、ChatGPT要約、Perplexity要約を順次実行）
   const handleInvestigate = async () => {
@@ -882,10 +896,10 @@ const IndexPage = () => {
             onClick={handleInvestigate}
             disabled={isLoadingInvestigate} // 全てのローディング中は無効化
           >
-            {isLoading ? "調査中..." : "調査開始"}
+            {isLoadingInvestigate ? "調査中..." : "調査開始"}
           </button>
 
-          {isLoading && <p className="text-[#07061B] mt-4">Loading...</p>} {/* ローディングメッセージ */}
+          {isLoadingInvestigate && <p className="text-[#07061B] mt-4">Loading...</p>} {/* ローディングメッセージ */}
         </div>
         {/* </Link> */}
     </div>
