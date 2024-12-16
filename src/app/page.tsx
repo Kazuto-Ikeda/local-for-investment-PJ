@@ -143,8 +143,8 @@ const IndexPage = () => {
   { label: string; current: number | string | null; forecast: number | string | null; highlight?: boolean }[]
 >([]);
 
-  const BASE_URL=process.env.NEXT_PUBLIC_BASE_URL
-  console.log("BASE_URL", BASE_URL, BASE_URL+"summarize/speeda")
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+  console.log("NEXT_PUBLIC_BASE_URL", BASE_URL, BASE_URL+"summarize/speeda")
 
 
   // const queryParams: QueryParams = {
