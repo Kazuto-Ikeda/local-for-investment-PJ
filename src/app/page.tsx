@@ -283,7 +283,7 @@ const IndexPage = () => {
     //   }
     // };
 
-    // // Perplexityで再生成APIコール関数
+    // // Perplexityで再生成APIコール関
     // const handleRegeneratePerplexity = async (key: string) => {
     //   setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: true }));
     //   setRegeneratePerplexityError("");
