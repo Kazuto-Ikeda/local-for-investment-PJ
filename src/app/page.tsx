@@ -4,24 +4,6 @@ import { useState, useCallback, useEffect } from "react";
 // import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import industryHierarchy from "./industry_hierarchy.json" assert { type: "json" };
-import { useRouter } from 'next/router'; // 必要に応じてインポート
-
-// interface QueryParams {
-//   companyName: string;
-//   revenueCurrent: number;
-//   revenueForecast: number;
-//   ebitdaCurrent: number;
-//   ebitdaForecast: number;
-//   netDebtCurrent: number;
-//   netDebtForecast: number;
-//   equityValueCurrent: number;
-//   equityValueForecast: number;
-//   industryMedianMultipleCurrent: number;
-//   industryMedianMultipleForecast: number;
-//   majorCategory?: string;
-//   middleCategory?: string;
-//   smallCategory?: string;
-// }
 
 interface IndustryData {
   現状: string;
@@ -50,15 +32,6 @@ interface ValuationOutput {
   industry_median_multiple_forecast: string | null;
 }
 
-// 型定義
-interface Summaries {
-  [key: string]: string;
-}
-
-interface KeyMapping {
-  [key: string]: string;
-}
-
 
 const IndexPage = () => {
   // 独立したローディング状態
@@ -76,9 +49,6 @@ const IndexPage = () => {
   const [exportError, setExportError] = useState("");  
   const [valuationError, setValuationError] = useState("");
   const [regeneratePerplexityError, setRegeneratePerplexityError] = useState("");
-  const handleBack = () => {
-    window.location.reload(); // ページをリロードして状態をリセット
-  };
   
 
   // ユーザー入力状態
@@ -143,9 +113,6 @@ const IndexPage = () => {
   { label: string; current: number | string | null; forecast: number | string | null; highlight?: boolean }[]
 >([]);
 
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
-  console.log("NEXT_PUBLIC_BASE_URL", BASE_URL, BASE_URL+"summarize/speeda")
-
 
   // const queryParams: QueryParams = {
   //   companyName: companyName || "株式会社サンプル",
@@ -173,7 +140,7 @@ const IndexPage = () => {
   const [prompts, setPrompts] = useState<Record<string, string>>({
     現状: `業界の現状を説明してください。`,
     将来性と課題: `業界の将来性や抱えている課題を説明してください。`,
-    競合と差別化: `業界の競合情報および株式会社サンプルの差別化要因を教えてください。`,
+    競合と差別化: `業界の競合情報お よび株式会社サンプルの差別化要因を教えてください。`,
     Exit先検討: `株式会社サンプルのExit先はどのような相手が有力でしょうか？`,
     バリューアップ施策: `株式会社サンプルのバリューアップ施策をDX関連とその他に分けて教えてください。`,
     "M&A事例": `業界のM&A事例について過去実績、将来の見込みを教えてください。`,
@@ -182,7 +149,7 @@ const IndexPage = () => {
 
   //Perplexityのプロンプト
   const [promptsPerplexity, setPromptsPerplexity] = useState<Record<string, string>>({
-    現状: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。検討にあたり事業内容及び業界について詳しく教えてください。`,
+    現状: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（住所：${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。検討にあたり事業内容及び業界について詳しく教えてください。`,
     将来性と課題: `私たちは投資ファンドを運営しており、△△業界に属する企業の買収を検討しています。業界の趨勢、将来性、抱えている課題について教えてください。`,
     競合と差別化: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。業界の競合状況及び差別化要因を教えてください。`,
     Exit先検討: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。Exit先はどのような相手が有力でしょうか。`,
@@ -244,80 +211,81 @@ const IndexPage = () => {
     //   }
     // };
 
-    // // ChatGPTで再生成APIコール関数
-    // const handleRegenerate = async (key: string) => {
-    //   setIsRegenerating((prev) => ({ ...prev, [key]: true }));
-    //   setRegenerateError("");
-    //   try {
-    //     const response = await fetch(BASE_URL+"summarize/speeda", {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({
-    //         industry: majorCategory,
-    //         sector: middleCategory,
-    //         category: smallCategory,
-    //         company_name: companyName,
-    //         query_type: key, // 修正: query_key → query_type
-    //         prompt: prompts[key], // 修正: custom_query → prompt
-    //         // perplexity_summary: perplexitySummaries[key], // 不要
-    //       }),
-    //     });
+    // ChatGPTで再生成APIコール関数
+    const handleRegenerate = async (key: string) => {
+      setIsRegenerating((prev) => ({ ...prev, [key]: true }));
+      setRegenerateError("");
+      try {
+        const response = await fetch("https://investment-backend.azurewebsites.net/summarize/speeda", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            industry: majorCategory,
+            sector: middleCategory,
+            category: smallCategory,
+            company_name: companyName,
+            query_type: key, // 修正: query_key → query_type
+            prompt: prompts[key], // 修正: custom_query → prompt
+            // perplexity_summary: perplexitySummaries[key], // 不要
+          }),
+        });
 
-    //     if (!response.ok) {
-    //       throw new Error("再生成処理に失敗しました。");
-    //     }
+        if (!response.ok) {
+          throw new Error("再生成処理に失敗しました。");
+        }
 
-    //     const data = await response.json();
-    //     setChatgptSummaries((prevSummaries) => ({
-    //       ...prevSummaries,
-    //       [key]: data[key],
-    //     }));
-    //     alert(`再生成が完了しました: ${key}`);
-    //   } catch (error) {
-    //     setRegenerateError(error instanceof Error ? error.message : "再生成処理中にエラーが発生しました。");
-    //     console.error(`handleRegenerate: Error regenerating for ${key}`, error);
-    //   } finally {
-    //     setIsRegenerating((prev) => ({ ...prev, [key]: false }));
-    //   }
-    // };
+        const data = await response.json();
+        setChatgptSummaries((prevSummaries) => ({
+          ...prevSummaries,
+          [key]: data[key],
+        }));
+        alert(`再生成が完了しました: ${key}`);
+      } catch (error) {
+        setRegenerateError(error instanceof Error ? error.message : "再生成処理中にエラーが発生しました。");
+        console.error(`handleRegenerate: Error regenerating for ${key}`, error);
+      } finally {
+        setIsRegenerating((prev) => ({ ...prev, [key]: false }));
+      }
+    };
 
-    // // Perplexityで再生成APIコール関
-    // const handleRegeneratePerplexity = async (key: string) => {
-    //   setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: true }));
-    //   setRegeneratePerplexityError("");
-    //   try {
-    //     const response = await fetch(BASE_URL+"summarize/perplexity", {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({
-    //         query_type: key, // 修正: query_key → query_type
-    //         prompt: promptsPerplexity[key], // 修正: custom_query → prompt
-    //       }),
-    //     });
+    // Perplexityで再生成APIコール関数
+    const handleRegeneratePerplexity = async (key: string) => {
+      setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: true }));
+      setRegeneratePerplexityError("");
+      try {
+        const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query_type: key, // 修正: query_key → query_type
+            prompt: promptsPerplexity[key], // 修正: custom_query → prompt
+          }),
+        });
   
-    //     if (!response.ok) {
-    //       throw new Error("Perplexity再生成処理に失敗しました。");
-    //     }
+        if (!response.ok) {
+          throw new Error("Perplexity再生成処理に失敗しました。");
+        }
   
-    //     const data = await response.json();
-    //     setPerplexitySummaries((prevSummaries) => ({
-    //       ...prevSummaries,
-    //       [key]: data[key],
-    //     }));
-    //     alert(`Perplexity再生成が完了しました: ${key}`);
-    //   } catch (error) {
-    //     setRegeneratePerplexityError(error instanceof Error ? error.message : "Perplexity再生成処理中にエラーが発生しました。");
-    //     console.error(`handleRegeneratePerplexity: Error regenerating Perplexity for ${key}`, error);
-    //   } finally {
-    //     setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: false }));
-    //   }
-    // };
+        const data = await response.json();
+        setPerplexitySummaries((prevSummaries) => ({
+          ...prevSummaries,
+          [key]: data[key],
+        }));
+        alert(`Perplexity再生成が完了しました: ${key}`);
+      } catch (error) {
+        setRegeneratePerplexityError(error instanceof Error ? error.message : "Perplexity再生成処理中にエラーが発生しました。");
+        console.error(`handleRegeneratePerplexity: Error regenerating Perplexity for ${key}`, error);
+      } finally {
+        setIsRegeneratingPerplexity((prev) => ({ ...prev, [key]: false }));
+      }
+    };
 
-    //　Word出力
+  
+    // Word出力APIコール関数
     const handleWordExport = async () => {
       setIsExporting(true);
       setExportError("");
@@ -325,12 +293,28 @@ const IndexPage = () => {
         console.log("Sending Perplexity summaries:", perplexitySummaries);
         console.log("Sending ChatGPT summaries:", chatgptSummaries);
         console.log("Sending valuation data:", valuationData);
-    
-        // キーマッピングを使用せず、英語のままsummariesを送信
-        const transformedPerplexitySummaries: Record<string, string> = { ...perplexitySummaries };
-        const transformedChatgptSummaries: Record<string, string> = { ...chatgptSummaries };
-    
-        // バリュエーションデータを数値としてフォーマット
+
+        // 日本語キーに変換したPerplexity要約データを生成
+        const transformedPerplexitySummaries: Record<string, string> = Object.entries(perplexitySummaries).reduce(
+          (acc, [key, value]) => {
+            const japaneseKey = Object.keys(keyMapping).find((k) => keyMapping[k] === key) || key;
+            acc[japaneseKey] = value || "内容がありません";
+            return acc;
+          },
+          {} as Record<string, string>
+        );
+
+        // 日本語キーに変換したChatGPT要約データを生成
+        const transformedChatgptSummaries: Record<string, string> = Object.entries(chatgptSummaries).reduce(
+          (acc, [key, value]) => {
+            const japaneseKey = Object.keys(keyMapping).find((k) => keyMapping[k] === key) || key;
+            acc[japaneseKey] = value || "内容がありません";
+            return acc;
+          },
+          {} as Record<string, string>
+        );
+
+        // バリュエーションデータをフォーマット
         const transformedValuationData: Record<string, { current: string; forecast: string }> = valuationData.reduce(
           (acc, item) => {
             acc[item.label] = {
@@ -341,10 +325,10 @@ const IndexPage = () => {
           },
           {} as Record<string, { current: string; forecast: string }>
         );
-    
+
         // エンドポイントにリクエストを送信
         const response = await fetch(
-          BASE_URL + `word_export?company_name=${encodeURIComponent(companyName)}`,
+          `https://investment-backend.azurewebsites.net/word_export?company_name=${encodeURIComponent(companyName)}`,
           {
             method: "POST",
             headers: {
@@ -359,13 +343,12 @@ const IndexPage = () => {
             }),
           }
         );
-    
         if (!response.ok) {
           const errorDetails = await response.text();
           console.error("Error details:", errorDetails);
           throw new Error("Wordファイルの生成に失敗しました。");
         }
-    
+
         // レスポンスからWordファイルをダウンロード
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -382,226 +365,97 @@ const IndexPage = () => {
       } finally {
         setIsExporting(false);
       }
-    };
-    
+    };  
   
-    // // ChatGPTサマリー
-    // const handleSummarize = async (
-    //   multi: boolean = false,
-    //   section: string | null = null
-    // ): Promise<void> => {
-    //   setSummarizeError(""); // エラーメッセージをリセット
-  
-    //   // 単一のセクションを要約する関数
-    //   const summarizeSection = async (
-    //     key: string,
-    //     custom_query: string
-    //   ): Promise<void> => {
-    //     const query_key: string = keyMapping[key];
-    //     setIsRegenerating((prev) => ({ ...prev, [query_key]: true }));
-  
-    //     try {
-    //       const response = await fetch(BASE_URL + "summarize/speeda", {
-    //         method: "POST",
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify({
-    //           industry: majorCategory,
-    //           sector: middleCategory,
-    //           category: smallCategory,
-    //           query_type: query_key, // 修正: query_key → query_type
-    //           prompt: custom_query, // 修正: custom_query → prompt
-    //         }),
-    //       });
-  
-    //       if (!response.ok) {
-    //         throw new Error(`ChatGPTによる要約データの取得に失敗しました: ${key}`);
-    //       }
-  
-    //       const data = await response.json();
-  
-    //       setChatgptSummaries((prevSummaries) => ({
-    //         ...prevSummaries,
-    //         [query_key]: data[query_key] || "内容がありません",
-    //       }));
-    //     } catch (error) {
-    //       setSummarizeError((prev) =>
-    //         `${prev}\n${error instanceof Error ? error.message : "ChatGPT要約処理中にエラーが発生しました。"}`
-    //       );
-    //       console.error(`handleSummarize: Error processing ${key}:`, error);
-    //     } finally {
-    //       setIsRegenerating((prev) => ({ ...prev, [query_key]: false }));
-    //     }
-    //   };
-  
-    //   if (multi) {
-    //     // 初回: 全体を要約
-    //     for (const key of Object.keys(prompts)) {
-    //       const custom_query: string = prompts[key];
-    //       await summarizeSection(key, custom_query);
-    //     }
-    //   } else if (section) {
-    //     // 再生成時: 指定されたセクションのみ要約
-    //     if (!prompts.hasOwnProperty(section)) {
-    //       setSummarizeError((prev) => `${prev}\n指定されたセクションが存在しません: ${section}`);
-    //       console.error(`handleSummarize: Section does not exist: ${section}`);
-    //       return;
-    //     }
-  
-    //     const custom_query: string = prompts[section];
-    //     await summarizeSection(section, custom_query);
-    //   } else {
-    //     // 無効なパラメータ
-    //     setSummarizeError((prev) => `${prev}\n無効なパラメータが渡されました。`);
-    //     console.error("handleSummarize: Invalid parameters - multi:", multi, "section:", section);
-    //   }
-    // };
-
-    const handleSummarize = async (
-      multi: boolean = false,
-      section: string | null = null
-    ): Promise<void> => {
-      console.log(`handleSummarize called with multi=${multi}, section=${section}`);
+    // ChatGPTサマリー
+    const handleSummarize = async () => {
       setSummarizeError(""); // エラーメッセージをリセット
     
-      if (multi) {
-        // 全てのセクションを再生成
-        console.log("Summarizing all sections for ChatGPT.");
-        const keys = Object.keys(prompts);
-        for (const key of keys) {
-          await regenerateSectionChatGPT(key);
+      for (const key of Object.keys(prompts)) {
+        const custom_query = prompts[key];
+        const query_key = keyMapping[key];
+    
+        setIsRegenerating((prev) => ({ ...prev, [query_key]: true }));
+    
+        try {
+          const response = await fetch("https://investment-backend.azurewebsites.net/summarize/speeda", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              industry: majorCategory,
+              sector: middleCategory,
+              category: smallCategory,
+              query_type: query_key, // 修正: query_key → query_type
+              prompt: custom_query, // 修正: custom_query → prompt
+            }),
+          });
+    
+          if (!response.ok) {
+            throw new Error(`ChatGPTによる要約データの取得に失敗しました: ${key}`);
+          }
+    
+          const data = await response.json();
+    
+          setChatgptSummaries((prevSummaries) => ({
+            ...prevSummaries,
+            [query_key]: data[query_key] || "内容がありません",
+          }));
+        } catch (error) {
+          setSummarizeError(
+            (prev) => `${prev}\n${error instanceof Error ? error.message : "ChatGPT要約処理中にエラーが発生しました。"}`
+          );
+          console.error(`handleSummarize: Error processing ${key}:`, error);
+        } finally {
+          setIsRegenerating((prev) => ({ ...prev, [query_key]: false }));
         }
-      } else if (section) {
-        // 特定のセクションのみ再生成
-        console.log(`Summarizing single section for ChatGPT: ${section}`);
-        if (!prompts.hasOwnProperty(section)) {
-          setSummarizeError(`指定されたセクションが存在しません: ${section}`);
-          console.error(`Section does not exist: ${section}`);
-          return;
-        }
-        await regenerateSectionChatGPT(section);
-      } else {
-        // 無効なパラメータ
-        setSummarizeError("無効なパラメータが渡されました。");
-        console.error("Invalid parameters passed to handleSummarize.");
-      }
-    };
-    
-    const regenerateSectionChatGPT = async (key: string) => {
-      console.log(`Regenerating section: ${key}`);
-      const query_key: string = keyMapping[key];
-      console.log(`Mapped query_key: ${query_key}`);
-      setIsRegenerating((prev) => ({ ...prev, [query_key]: true }));
-    
-      try {
-        const response = await fetch(BASE_URL + "summarize/speeda", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            industry: majorCategory,
-            sector: middleCategory,
-            category: smallCategory,
-            query_type: query_key,
-            prompt: prompts[key],
-          }),
-        });
-    
-        if (!response.ok) {
-          throw new Error(`ChatGPTによる要約データの取得に失敗しました: ${key}`);
-        }
-    
-        const data = await response.json();
-        console.log(`Received data for ${key}:`, data[query_key]);
-    
-        setChatgptSummaries((prevSummaries) => ({
-          ...prevSummaries,
-          [query_key]: data[query_key] || "内容がありません",
-        }));
-      } catch (error) {
-        setSummarizeError((prev) =>
-          `${prev}\n${error instanceof Error ? error.message : "ChatGPT要約処理中にエラーが発生しました。"}`
-        );
-        console.error(`Error regenerating section ${key}:`, error);
-      } finally {
-        setIsRegenerating((prev) => ({ ...prev, [query_key]: false }));
-        console.log(`Completed regenerating section: ${key}`);
       }
     };
 
-
-    // Perplexityサマリー
-    const handleSummarizePerplexity = async (
-      multi: boolean = false,
-      section: string | null = null
-    ): Promise<void> => {
-      console.log(`handleSummarizePerplexity called with multi=${multi}, section=${section}`);
-      setPerplexityError(""); // エラーメッセージをリセット
-    
-      if (multi) {
-        // 全てのセクションを再生成
-        console.log("Summarizing all sections for Perplexity.");
-        const keys = Object.keys(promptsPerplexity);
-        for (const key of keys) {
-          await regenerateSectionPerplexity(key);
-        }
-      } else if (section) {
-        // 特定のセクションのみ再生成
-        console.log(`Summarizing single section for Perplexity: ${section}`);
-        if (!promptsPerplexity.hasOwnProperty(section)) {
-          setPerplexityError(`指定されたセクションが存在しません: ${section}`);
-          console.error(`Section does not exist: ${section}`);
-          return;
-        }
-        await regenerateSectionPerplexity(section);
-      } else {
-        // 無効なパラメータ
-        setPerplexityError("無効なパラメータが渡されました。");
-        console.error("Invalid parameters passed to handleSummarizePerplexity.");
-      }
-    };
-    
-    const regenerateSectionPerplexity = async (key: string) => {
-      console.log(`Regenerating section: ${key}`);
-      const query_key: string = keyMapping[key];
-      console.log(`Mapped query_key: ${query_key}`);
+  // Perplexityのみの要約処理
+  const handleSummarizePerplexity = async () => {
+    setPerplexityError(""); // エラーメッセージをリセット
+  
+    for (const key of Object.keys(promptsPerplexity)) {
+      const custom_query = promptsPerplexity[key];
+      const query_key = keyMapping[key];
+  
       setIsRegeneratingPerplexity((prev) => ({ ...prev, [query_key]: true }));
-    
+  
       try {
-        const response = await fetch(BASE_URL + "summarize/perplexity", {
+        const response = await fetch("https://investment-backend.azurewebsites.net/summarize/perplexity", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            query_type: query_key,
-            prompt: promptsPerplexity[key],
+            query_type: query_key, // 修正: query_key → query_type
+            prompt: custom_query, // 修正: custom_query → prompt
           }),
         });
-    
+  
         if (!response.ok) {
           throw new Error(`Perplexityによる要約データの取得に失敗しました: ${key}`);
         }
-    
+  
         const data = await response.json();
-        console.log(`Received data for ${key}:`, data[query_key]);
-    
+  
         setPerplexitySummaries((prevSummaries) => ({
           ...prevSummaries,
           [query_key]: data[query_key] || "内容がありません",
         }));
       } catch (error) {
-        setPerplexityError((prev) =>
-          `${prev}\n${error instanceof Error ? error.message : "Perplexity要約処理中にエラーが発生しました。"}`
+        setPerplexityError(
+          (prev) => `${prev}\n${error instanceof Error ? error.message : "Perplexity要約処理中にエラーが発生しました。"}`
         );
-        console.error(`Error regenerating section ${key}:`, error);
+        console.error(`handleSummarizePerplexity: Error processing ${key}:`, error);
       } finally {
         setIsRegeneratingPerplexity((prev) => ({ ...prev, [query_key]: false }));
-        console.log(`Completed regenerating section: ${key}`);
       }
-    };
+    }
+  };
+
 
   // 調査開始ボタンハンドラー（バリュエーション取得、ChatGPT要約、Perplexity要約を順次実行）
   const handleInvestigate = async () => {
@@ -609,20 +463,20 @@ const IndexPage = () => {
     setSummarizeError("");
     setPerplexityError("");
     setValuationError("");
-  
+
     try {
       // 1. ChatGPTによる要約を実行
-      await handleSummarize(true, "");
+      await handleSummarize();
       console.log("ChatGPTによる要約が完了しました。");
-  
+
       // 2. Perplexityによる要約を実行
-      await handleSummarizePerplexity(true, "");
+      await handleSummarizePerplexity();
       console.log("Perplexityによる要約が完了しました。");
-  
+
       // 3. バリュエーションデータを取得
       await fetchValuationData();
       console.log("バリュエーションデータの取得が完了しました。");
-  
+
       alert("調査が完了しました。");
     } catch (error) {
       console.error("handleInvestigate: Error:", error);
@@ -645,7 +499,7 @@ const IndexPage = () => {
         category: smallCategory,
       };
 
-      const response = await fetch(BASE_URL+"valuation", {
+      const response = await fetch("https://investment-backend.azurewebsites.net/valuation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1004,8 +858,8 @@ const IndexPage = () => {
         <span className="text-gray-700">想定EquityValue</span>
         <input
           type="text"
-          value={equityValueCurrent}
-          onChange={(e) => handleRevenueChange(e.target.value, setEquityValueCurrent)}
+          value={equityValueForecast}
+          onChange={(e) => handleRevenueChange(e.target.value, setEquityValueForecast)}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           placeholder="例: 45"
           style={{ color: "black" }}
@@ -1027,6 +881,8 @@ const IndexPage = () => {
           >
             {isLoadingInvestigate ? "調査中..." : "調査開始"}
           </button>
+
+          {isLoadingInvestigate && <p className="text-[#07061B] mt-4">Loading...</p>} {/* ローディングメッセージ */}
         </div>
         {/* </Link> */}
     </div>
@@ -1036,20 +892,22 @@ const IndexPage = () => {
       <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">{companyName} 調査結果</h1>
 
       {/* 各アクションごとのエラーメッセージ表示 */}
+      {summarizeError && <p className="text-red-600 mb-4">要約取得エラー: {summarizeError}</p>}
+      {perplexityError && <p className="text-red-600 mb-4">Perplexity要約エラー: {perplexityError}</p>}
+      {regenerateError && <p className="text-red-600 mb-4">ChatGPT再生成エラー: {regenerateError}</p>}
+      {regeneratePerplexityError && <p className="text-red-600 mb-4">Perplexity再生成エラー: {regeneratePerplexityError}</p>}
+      {exportError && <p className="text-red-600 mb-4">Word出力エラー: {exportError}</p>}
+      {valuationError && <p className="text-red-600 mb-4">バリュエーションエラー: {valuationError}</p>}
 
       <hr className="my-8 border-t-2 border-gray-300" />
 
       {/* Perplexity分析セクション */}
       <h2 className="text-2xl font-bold text-gray-800 mb-4 pb-4">Perplexity 分析</h2>
 
-      {perplexityError && <p className="text-red-600 mb-4">Perplexity要約エラー: {perplexityError}</p>}
-      {regeneratePerplexityError && <p className="text-red-600 mb-4">Perplexity再生成エラー: {regeneratePerplexityError}</p>}
-
       {/* データが取得できた場合 */}
       {Object.keys(prompts).map((key, index) => {
         const mappedKey = keyMapping[key]; // 日本語キーを英語キーに変換
         const summary = perplexitySummaries[mappedKey]; // summariesからデータを取得
-        const multi = false
 
         return (
           <div key={key} className="mb-5">
@@ -1063,11 +921,12 @@ const IndexPage = () => {
               </h2>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => handleSummarizePerplexity(false, key)}
+                  onClick={() => handleRegeneratePerplexity(mappedKey)}
+                  //700:800を500:700に変更
                   className="bg-[#999999] text-white py-1 px-4 rounded-md hover:bg-[#404040]"
                   disabled={isRegeneratingPerplexity[mappedKey] || false} // Perplexityのローディングに依存
                 >
-                  {isRegeneratingPerplexity[mappedKey] ? "生成中..." : "再生成"}
+                  {isRegeneratingPerplexity[mappedKey] ? "再生成中..." : "再生成"}
                 </button>
               </div>
             </div>
@@ -1092,14 +951,10 @@ const IndexPage = () => {
       <h2 className="text-2xl font-bold text-gray-800 mb-4 pt-12 pb-4">ChatGPT+SPEEDA 分析</h2>
 
       {/* データが取得できた場合 */}
-      {summarizeError && <p className="text-red-600 mb-4">ChatGPT要約取得エラー: {summarizeError}</p>}
-      {regenerateError && <p className="text-red-600 mb-4">ChatGPT再生成エラー: {regenerateError}</p>}
-
       {Object.keys(prompts).map((key, index) => {
         const mappedKey = keyMapping[key]; // 日本語キーを英語キーに変換
         const summary = chatgptSummaries[mappedKey]; // summariesからデータを取得
-        const multi = false
-      
+
         return (
           <div key={key} className="mb-5">
             <div className="flex justify-between items-center">
@@ -1113,12 +968,12 @@ const IndexPage = () => {
               <div className="flex space-x-2">
 
                 <button
-                  onClick={() => handleSummarize(false, key)}
+                  onClick={() => handleRegenerate(mappedKey)}
                   //700:800を500:700に変更
                   className="bg-[#999999] text-white py-1 px-4 rounded-md hover:bg-[#404040]"
                   disabled={isRegenerating[mappedKey] || false} // 再生成のローディングに依存
                 >
-                  {isRegenerating[mappedKey] ? "生成中..." : "再生成"}
+                  {isRegenerating[mappedKey] ? "再生成中..." : "再生成"}
                 </button>
               </div>
             </div>
@@ -1141,8 +996,6 @@ const IndexPage = () => {
 
       {/* バリュエーションセクション */}
       {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
-      {valuationError && <p className="text-red-600 mb-4">バリュエーションエラー: {valuationError}</p>}
-
 
       <div className="mb-6 pt-10">
         <h2 className="text-xl font-bold text-gray-700">バリュエーション</h2>
@@ -1167,8 +1020,6 @@ const IndexPage = () => {
       </div>
 
       {/* Word出力 */}
-      {exportError && <p className="text-red-600 mb-4">Word出力エラー: {exportError}</p>}
-
       <div className="flex justify-center mt-20">
         <button
           onClick={handleWordExport}
@@ -1180,12 +1031,9 @@ const IndexPage = () => {
       </div>
 
         <div className="flex justify-center mt-0.5">
-          <button
-            onClick={handleBack}
-            className="w-1/2 bg-white text-[#07061B] py-2 rounded-md border border-[#07061B] hover:bg-[#07061B] hover:text-white mt-6 text-center block"
-          >
+          <Link href="/" className="w-1/2 bg-white text-[#07061B] py-2 rounded-md border border-[#07061B] hover:bg-[#07061B] hover:text-white mt-6 text-center block">
             戻る
-          </button>
+          </Link>
         </div>
       </div>
     </div>
