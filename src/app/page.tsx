@@ -143,8 +143,8 @@ const IndexPage = () => {
   { label: string; current: number | string | null; forecast: number | string | null; highlight?: boolean }[]
 >([]);
 
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
-  console.log("NEXT_PUBLIC_BASE_URL", BASE_URL, BASE_URL+"summarize/speeda")
+  const BASE_URL = "https://investment-backend.azurewebsites.net/"
+  // console.log("NEXT_PUBLIC_BASE_URL", BASE_URL, BASE_URL+"summarize/speeda")
 
 
   // const queryParams: QueryParams = {
@@ -782,13 +782,13 @@ const IndexPage = () => {
     const industryName = smallCategory || "△△業界";
 
     setPromptsPerplexity({
-      現状: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。検討にあたり事業内容及び業界について詳しく教えてください。`,
+      現状: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（住所：${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。検討にあたり事業内容及び業界について詳しく教えてください。`,
       将来性と課題: `私たちは投資ファンドを運営しており、${industryName}に属する企業の買収を検討しています。業界の趨勢、将来性、抱えている課題について教えてください。`,
-      競合と差別化: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。業界の競合状況及び差別化要因を教えてください。`,
-      Exit先検討: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。Exit先はどのような相手が有力でしょうか。`,
-      バリューアップ施策: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。有力なバリューアップ施策についてDX関連とその他に分けて教えてください。`,
+      競合と差別化: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（住所：${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。業界の競合状況及び差別化要因を教えてください。`,
+      Exit先検討: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（住所：${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。Exit先はどのような相手が有力でしょうか。`,
+      バリューアップ施策: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（住所：${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。有力なバリューアップ施策についてDX関連とその他に分けて教えてください。`,
       "M&A事例": `私たちは投資ファンドを運営しており、${industryName}に属する企業の買収を検討しています。業界のM&A事例について過去実績、将来の見込みを教えてください。`,
-      SWOT分析: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。${companyName || "〇〇株式会社"}のSWOT分析をお願いします。難しい場合は業界の一般的なSWOT分析をお願いします。`,
+      SWOT分析: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（住所：${address} 主要事業：${businessDescription || "△△事業"}）の買収を検討しています。${companyName || "〇〇株式会社"}のSWOT分析をお願いします。難しい場合は業界の一般的なSWOT分析をお願いします。`,
     });
   }, [companyName, businessDescription, smallCategory]); // companyName, businessDescription, smallCategory の変更を監視
 
