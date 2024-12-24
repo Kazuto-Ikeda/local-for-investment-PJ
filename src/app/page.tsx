@@ -168,8 +168,11 @@ const IndexPage = () => {
     // const selectedIndustry = searchParams.get("selectedIndustry");
     // const [isOpenIndustry, setIsOpenIndustry] = useState(false);
     // const [industryData, setIndustryData] = useState<IndustryData | null>(null);
-  const [isOpen, setIsOpen] = useState<Record<string, boolean>>({});
-  //ChatGPTのプロンプト
+  // Perplexityセクションの開閉状態
+  const [isOpenPerplexity, setIsOpenPerplexity] = useState<Record<string, boolean>>({});
+
+  // ChatGPTセクションの開閉状態
+  const [isOpenChatGPT, setIsOpenChatGPT] = useState<Record<string, boolean>>({});  //ChatGPTのプロンプト
   const [prompts, setPrompts] = useState<Record<string, string>>({
     現状: `業界の現状を説明してください。`,
     将来性と課題: `業界の将来性や抱えている課題を説明してください。`,
@@ -190,6 +193,16 @@ const IndexPage = () => {
     "M&A事例": `私たちは投資ファンドを運営しており、△△業界に属する企業の買収を検討しています。業界のM&A事例について過去実績、将来の見込みを教えてください。`,
     SWOT分析: `私たちは投資ファンドを運営しており、${companyName || "〇〇株式会社"}（主要事業：${businessDescription || "△△事業"}）の買収を検討しています。${companyName || "〇〇株式会社"}のSWOT分析をお願いします。難しい場合は業界の一般的なSWOT分析をお願いします。`,
   });
+
+  // Perplexityセクションのトグル関数
+  const togglePerplexitySection = (key: string) => {
+    setIsOpenPerplexity(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // ChatGPTセクションのトグル関数
+  const toggleChatGPTSection = (key: string) => {
+    setIsOpenChatGPT(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
 
 
@@ -792,9 +805,9 @@ const IndexPage = () => {
     });
   }, [companyName, businessDescription, smallCategory]); // companyName, businessDescription, smallCategory の変更を監視
 
-    const toggleSection = (key: string) => {
-      setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
+    // const toggleSection = (key: string) => {
+    //   setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+    // };
 
   // Summaries を日本語キーに変換
   const transformedSummaries: Record<string, string> = Object.entries(summaries).reduce(
@@ -1057,9 +1070,9 @@ const IndexPage = () => {
               <h2
                 //boldからnormalに変更
                 className="text-xl font-normal text-gray-700 cursor-pointer"
-                onClick={() => toggleSection(key)}
+                onClick={() => togglePerplexitySection(key)}
               >
-                {index + 1} {key} {isOpen[key] ? "▲" : "▼"}
+                {index + 1} {key} {isOpenPerplexity[key] ? "▲" : "▼"}
               </h2>
               <div className="flex space-x-2">
                 <button
@@ -1079,7 +1092,7 @@ const IndexPage = () => {
                 className="block w-full p-2 border border-gray-300 rounded-md text-black"
               />
             </div>
-            {isOpen[key] && (
+            {isOpenPerplexity[key] && (
               <pre className="font-sans text-base text-gray-800 mt-4" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                 {summary || "データがありません"}
               </pre>
@@ -1106,9 +1119,9 @@ const IndexPage = () => {
               <h2
                 //boldからnormalに変更
                 className="text-xl font-normal text-gray-700 cursor-pointer"
-                onClick={() => toggleSection(key)}
+                onClick={() => toggleChatGPTSection(key)}
               >
-                {index + 1} {key} {isOpen[key] ? "▲" : "▼"}
+                {index + 1} {key} {isOpenChatGPT[key] ? "▲" : "▼"}
               </h2>
               <div className="flex space-x-2">
 
@@ -1130,7 +1143,7 @@ const IndexPage = () => {
                 className="block w-full p-2 border border-gray-300 rounded-md text-black"
               />
             </div>
-            {isOpen[key] && (
+            {isOpenChatGPT[key] && (
               <pre className="font-sans text-base text-gray-800 mt-4" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                 {summary || "データがありません"}
               </pre>
