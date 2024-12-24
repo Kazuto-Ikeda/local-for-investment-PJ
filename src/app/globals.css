@@ -20,3 +20,9 @@ body {
   background: var(--background);
   font-family: var(--font-noto-sans-jp);
 }
+
+pre {
+  font-family: var(--font-noto-sans-jp);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
