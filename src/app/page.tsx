@@ -1080,9 +1080,9 @@ const IndexPage = () => {
               />
             </div>
             {isOpen[key] && (
-              <p className="text-base text-gray-800 mt-4">
+              <pre className="text-base text-gray-800 mt-4" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                 {summary || "データがありません"}
-              </p>
+              </pre>
             )}
           </div>
         );
@@ -1131,10 +1131,10 @@ const IndexPage = () => {
               />
             </div>
             {isOpen[key] && (
-              <p className="text-base text-gray-800 mt-4">
+              <pre className="text-base text-gray-800 mt-4" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                 {summary || "データがありません"}
-              </p>
-            )}
+              </pre>
+          )}
           </div>
         );
       })}
