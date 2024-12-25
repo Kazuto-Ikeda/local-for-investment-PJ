@@ -28,6 +28,7 @@ pre {
 }
 
 .pre-wrap {
+  font-family: var(--font-noto-sans-jp);
   white-space: pre-wrap;
 }
 

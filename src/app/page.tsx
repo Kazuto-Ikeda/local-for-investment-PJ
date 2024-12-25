@@ -1175,7 +1175,7 @@ const IndexPage = () => {
             </div>
             {isOpenChatGPT[key] && (
               <ReactMarkdown
-                className="font-noto-sans-jp text-base text-gray-800 mt-4"
+                className="markdown-content font-noto-sans-jp text-base text-gray-800 mt-4 pre-wrap"
                 remarkPlugins={[remarkGfm, remarkBreaks]} // remarkBreaksを追加
                 components={{
                   table: ({ node, ...props }) => (
