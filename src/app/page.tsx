@@ -5,6 +5,9 @@ import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import industryHierarchy from "./industry_hierarchy.json" assert { type: "json" };
 import { useRouter } from 'next/router'; // 必要に応じてインポート
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 // interface QueryParams {
 //   companyName: string;
@@ -1093,9 +1096,36 @@ const IndexPage = () => {
               />
             </div>
             {isOpenPerplexity[key] && (
-              <pre className="font-sans text-base text-gray-800 mt-4" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+              <ReactMarkdown
+                className="markdown-content font-noto-sans-jp text-base text-gray-800 mt-4"
+                remarkPlugins={[remarkGfm, remarkBreaks]} // remarkBreaksを追加
+                components={{
+                  table: ({ node, ...props }) => (
+                    <table className="min-w-full bg-white border border-gray-300 mt-4" {...props} />
+                  ),
+                  th: ({ node, ...props }) => (
+                    <th className="py-2 px-4 border-b bg-[#EFEFEF] text-black text-left" {...props} />
+                  ),
+                  td: ({ node, ...props }) => (
+                    <td className="py-2 px-4 border-b text-black" {...props} />
+                  ),
+                  ol: ({ node, ...props }) => (
+                    <ol className="list-decimal pl-5 mb-0" {...props} />
+                  ),
+                  ul: ({ node, ...props }) => (
+                    <ul className="pl-5 mb-0" {...props} />
+                  ),
+                  h3: ({ node, ...props }) => (
+                    <h3 className="font-bold text-xl my-4" {...props} />
+                  ),
+                  strong: ({ node, ...props }) => (
+                    <strong className="font-bold text-lg" {...props} /> // フォントサイズを大きく
+                  ),
+                  // 他のMarkdown要素も必要に応じてカスタマイズ
+                }}
+              >
                 {summary || "データがありません"}
-              </pre>
+              </ReactMarkdown>
             )}
           </div>
         );
@@ -1144,10 +1174,37 @@ const IndexPage = () => {
               />
             </div>
             {isOpenChatGPT[key] && (
-              <pre className="font-sans text-base text-gray-800 mt-4" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+              <ReactMarkdown
+                className="font-noto-sans-jp text-base text-gray-800 mt-4"
+                remarkPlugins={[remarkGfm, remarkBreaks]} // remarkBreaksを追加
+                components={{
+                  table: ({ node, ...props }) => (
+                    <table className="min-w-full bg-white border border-gray-300 mt-4" {...props} />
+                  ),
+                  th: ({ node, ...props }) => (
+                    <th className="py-2 px-4 border-b bg-[#EFEFEF] text-black text-left" {...props} />
+                  ),
+                  td: ({ node, ...props }) => (
+                    <td className="py-2 px-4 border-b text-black" {...props} />
+                  ),
+                  ol: ({ node, ...props }) => (
+                    <ol className="list-decimal pl-5 mb-0" {...props} />
+                  ),
+                  ul: ({ node, ...props }) => (
+                    <ul className="pl-5 mb-0" {...props} />
+                  ),
+                  h3: ({ node, ...props }) => (
+                    <h3 className="font-bold text-xl my-4" {...props} />
+                  ),
+                  strong: ({ node, ...props }) => (
+                    <strong className="font-bold text-lg" {...props} /> // フォントサイズを大きく
+                  ),
+                  // 他のMarkdown要素も必要に応じてカスタマイズ
+                }}
+              >
                 {summary || "データがありません"}
-              </pre>
-          )}
+              </ReactMarkdown>
+            )}
           </div>
         );
       })}

@@ -26,3 +26,16 @@ pre {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+.pre-wrap {
+  white-space: pre-wrap;
+}
+
+.markdown-content ol,
+.markdown-content ul {
+  margin-bottom: 0;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem; /* Tailwindのmb-1に相当 */
+}
