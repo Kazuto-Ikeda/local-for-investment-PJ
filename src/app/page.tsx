@@ -134,8 +134,43 @@ const IndexPage = () => {
     setSmallCategory(category);
   };
 
-  const handleRevenueChange = (value: string, setValue: (val: string) => void) => {
-    const sanitizedValue = value.replace(/[^0-9.]/g, ""); 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleRevenueChange = (
+    value: string, 
+    setValue: (val: string) => void, 
+    allowNegative: boolean = false,
+    fieldName: string
+  ) => {
+    let sanitizedValue = value;
+    
+    if (allowNegative) {
+      // 数字、ピリオド、マイナス記号を許可
+      sanitizedValue = value.replace(/[^0-9.-]/g, "");
+      // マイナス記号が先頭に一つだけ存在するように調整
+      sanitizedValue = sanitizedValue.replace(/(?!^)-/g, "");
+    } else {
+      // 数字とピリオドのみ許可
+      sanitizedValue = value.replace(/[^0-9.]/g, "");
+    }
+    
+    // バリデーション
+    if (allowNegative) {
+      const regex = /^-?\d*\.?\d*$/;
+      if (!regex.test(sanitizedValue)) {
+        setErrors((prev) => ({ ...prev, [fieldName]: "有効な数値を入力してください。" }));
+      } else {
+        setErrors((prev) => ({ ...prev, [fieldName]: "" }));
+      }
+    } else {
+      const regex = /^\d*\.?\d*$/;
+      if (!regex.test(sanitizedValue)) {
+        setErrors((prev) => ({ ...prev, [fieldName]: "有効な数値を入力してください。" }));
+      } else {
+        setErrors((prev) => ({ ...prev, [fieldName]: "" }));
+      }
+    }
+    
     setValue(sanitizedValue);
   };
 
@@ -954,7 +989,7 @@ const IndexPage = () => {
         <input
           type="text"
           value={revenueCurrent}
-          onChange={(e) => handleRevenueChange(e.target.value, setRevenueCurrent)}
+          onChange={(e) => handleRevenueChange(e.target.value, setRevenueCurrent,false, 'revenueCurrent')}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           placeholder="例: 100"
           style={{ color: "black" }}
@@ -967,7 +1002,7 @@ const IndexPage = () => {
         <input
           type="text"
           value={revenueForecast}
-          onChange={(e) => handleRevenueChange(e.target.value, setRevenueForecast)}
+          onChange={(e) => handleRevenueChange(e.target.value, setRevenueForecast, false, 'revenueForecast')}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           placeholder="例: 150"
           style={{ color: "black" }}
@@ -981,11 +1016,12 @@ const IndexPage = () => {
         <input
           type="text"
           value={ebitdaCurrent}
-          onChange={(e) => handleRevenueChange(e.target.value, setEbitdaCurrent)}
+          onChange={(e) => handleRevenueChange(e.target.value, setEbitdaCurrent, true, 'ebitdaCurrent')}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-          placeholder="例: 20"
+          placeholder="例: 20または -20"
           style={{ color: "black" }}
         />
+        {errors.ebitdaCurrent && <p className="text-red-500 text-sm mt-1">{errors.ebitdaCurrent}</p>}
       </label>
     </div>
     <div>
@@ -994,11 +1030,12 @@ const IndexPage = () => {
         <input
           type="text"
           value={ebitdaForecast}
-          onChange={(e) => handleRevenueChange(e.target.value, setEbitdaForecast)}
+          onChange={(e) => handleRevenueChange(e.target.value, setEbitdaForecast, true, 'ebitdaForecast')}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-          placeholder="例: 30"
+          placeholder="例: 30または -30"
           style={{ color: "black" }}
         />
+        {errors.ebitdaForecast && <p className="text-red-500 text-sm mt-1">{errors.ebitdaForecast}</p>}
       </label>
     </div>
     {/* NetDebt */}
@@ -1008,11 +1045,12 @@ const IndexPage = () => {
         <input
           type="text"
           value={netDebtCurrent}
-          onChange={(e) => handleRevenueChange(e.target.value, setNetDebtCurrent)}
+          onChange={(e) => handleRevenueChange(e.target.value, setNetDebtCurrent, true, 'netDebtCurrent')}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-          placeholder="例: 50"
+          placeholder="例: 50または -50"
           style={{ color: "black" }}
         />
+        {errors.netDebtCurrent && <p className="text-red-500 text-sm mt-1">{errors.netDebtCurrent}</p>}
       </label>
     </div>
     <div>
@@ -1021,7 +1059,7 @@ const IndexPage = () => {
         <input
           type="text"
           value={equityValueCurrent}
-          onChange={(e) => handleRevenueChange(e.target.value, setEquityValueCurrent)}
+          onChange={(e) => handleRevenueChange(e.target.value, setEquityValueCurrent, false, 'equityValueCurrent')}
           className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           placeholder="例: 45"
           style={{ color: "black" }}
