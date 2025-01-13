@@ -1156,6 +1156,9 @@ const IndexPage = () => {
                   h3: ({ node, ...props }) => (
                     <h3 className="font-bold text-xl my-4" {...props} />
                   ),
+                  h4: ({ node, ...props }) => (
+                    <h4 className="font-bold text-lg my-4" {...props} />
+                  ),
                   strong: ({ node, ...props }) => (
                     <strong className="font-bold text-lg" {...props} /> // フォントサイズを大きく
                   ),
