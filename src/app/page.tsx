@@ -1151,7 +1151,7 @@ const IndexPage = () => {
                     <ol className="list-decimal pl-5 mb-0" {...props} />
                   ),
                   ul: ({ node, ...props }) => (
-                    <ul className="pl-5 mb-0" {...props} />
+                    <ul className="list-disc pl-5 mb-0" {...props} />
                   ),
                   h3: ({ node, ...props }) => (
                     <h3 className="font-bold text-xl my-4" {...props} />
