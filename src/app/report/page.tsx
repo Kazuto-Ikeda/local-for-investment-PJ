@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown"; // 追加：Markdownレンダリング用
 
 interface IndustryData {
   現状: string;
@@ -60,9 +61,19 @@ const ReportPageContent = () => {
   const [smallCategory, setSmallCategory] = useState("");
   const [includePerplexity, setIncludePerplexity] = useState(true);
 
-  
-
-
+  // --- 変更点①：テキスト整形関数 --- //
+  const formatContent = (text: string): string => {
+    return text
+      .split("\n")
+      .map((line) => {
+        // 「弱み」の行頭に余分な空白がある場合は取り除く
+        if (/^\s*弱み/.test(line)) {
+          return line.trimStart();
+        }
+        return line;
+      })
+      .join("\n");
+  };
 
   const handleAddPerplexity = async (key: string) => {
     try {
@@ -167,89 +178,84 @@ const ReportPageContent = () => {
   const [summaries, setSummaries] = useState<Record<string, string>>({});  
   const [errorMessage, setErrorMessage] = useState("");
   const [valuationData, setValuationData] = useState<
-  { label: string; current: number | null; forecast: number | null; highlight?: boolean }[]
->([]);
+    { label: string; current: number | null; forecast: number | null; highlight?: boolean }[]
+  >([]);
 
-
-      // 要約データ取得関数
-    const fetchSummaries = useCallback(async () => {
-      try {
-        const response = await fetch("http://127.0.0.1/summarize", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            industry: majorCategory,
-            sector: middleCategory,
-            category: smallCategory,
-            company_name: companyName,
-            include_perplexity: includePerplexity,
-          }),
-        });
-    
-        if (!response.ok) {
-          throw new Error("要約データの取得に失敗しました。");
-        }
-    
-        const data = await response.json();
-        setSummaries(data.summaries);
-      } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "要約処理中にエラーが発生しました。");
+  // 要約データ取得関数
+  const fetchSummaries = useCallback(async () => {
+    try {
+      const response = await fetch("http://127.0.0.1/summarize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          industry: majorCategory,
+          sector: middleCategory,
+          category: smallCategory,
+          company_name: companyName,
+          include_perplexity: includePerplexity,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("要約データの取得に失敗しました。");
       }
-    }, [majorCategory, middleCategory, smallCategory, companyName, includePerplexity]);  
+  
+      const data = await response.json();
+      setSummaries(data.summaries);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "要約処理中にエラーが発生しました。");
+    }
+  }, [majorCategory, middleCategory, smallCategory, companyName, includePerplexity]);  
    
-    // バリュエーションデータ取得関数
-    const fetchValuationData = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1/valuation", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            company_name: companyName,
-            ebitda_current: ebitdaCurrent,
-            ebitda_forecast: ebitdaForecast,
-            net_debt_current: netDebtCurrent,
-            net_debt_forecast: netDebtForecast,
-            equity_value_current: equityValueCurrent,
-            equity_value_forecast: equityValueForecast,
-          }),
-        });
+  // バリュエーションデータ取得関数
+  const fetchValuationData = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1/valuation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company_name: companyName,
+          ebitda_current: ebitdaCurrent,
+          ebitda_forecast: ebitdaForecast,
+          net_debt_current: netDebtCurrent,
+          net_debt_forecast: netDebtForecast,
+          equity_value_current: equityValueCurrent,
+          equity_value_forecast: equityValueForecast,
+        }),
+      });
   
-        if (!response.ok) {
-          throw new Error("バリュエーションデータの取得に失敗しました。");
-        }
-  
-        const data = await response.json();
-        setValuationData([
-          { label: "EBITDA", current: ebitdaCurrent, forecast: ebitdaForecast },
-          { label: "NetDebt", current: netDebtCurrent, forecast: netDebtForecast },
-          { label: "想定EquityValue", current: equityValueCurrent, forecast: equityValueForecast },
-          { label: "EV", current: data.calculations.ev_current, forecast: data.calculations.ev_forecast, highlight: true },
-          { label: "エントリーマルチプル", current: data.calculations.entry_multiple_current, forecast: data.calculations.entry_multiple_forecast },
-          { label: "マルチプル業界中央値", current: data.calculations.industry_median_multiple_current, forecast: data.calculations.industry_median_multiple_forecast },
-        ]);
-      } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
+      if (!response.ok) {
+        throw new Error("バリュエーションデータの取得に失敗しました。");
       }
-    };
+  
+      const data = await response.json();
+      setValuationData([
+        { label: "EBITDA", current: ebitdaCurrent, forecast: ebitdaForecast },
+        { label: "NetDebt", current: netDebtCurrent, forecast: netDebtForecast },
+        { label: "想定EquityValue", current: equityValueCurrent, forecast: equityValueForecast },
+        { label: "EV", current: data.calculations.ev_current, forecast: data.calculations.ev_forecast, highlight: true },
+        { label: "エントリーマルチプル", current: data.calculations.entry_multiple_current, forecast: data.calculations.entry_multiple_forecast },
+        { label: "マルチプル業界中央値", current: data.calculations.industry_median_multiple_current, forecast: data.calculations.industry_median_multiple_forecast },
+      ]);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "バリュエーションデータ取得中にエラーが発生しました。");
+    }
+  };
 
-
-useEffect(() => {
-  if (companyName && majorCategory && middleCategory && smallCategory) {
-    fetchSummaries();
-    fetchValuationData();
-  }
-}, [companyName, majorCategory, middleCategory, smallCategory, fetchSummaries, fetchValuationData]);
+  useEffect(() => {
+    if (companyName && majorCategory && middleCategory && smallCategory) {
+      fetchSummaries();
+      fetchValuationData();
+    }
+  }, [companyName, majorCategory, middleCategory, smallCategory, fetchSummaries, fetchValuationData]);
   
   const toggleSection = (key: string) => {
     setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   };
-
-
-
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -262,51 +268,56 @@ useEffect(() => {
   
         <h2 className="text-2xl font-bold text-gray-800 mb-4">ChatGPT（＋Perplexity）要約分析</h2>
   
-    {/* データが取得できた場合 */}
-    {industryData ? (
-      Object.keys(industryData).map((key, index) => (
-        <div key={key} className="mb-6">
-          <div className="flex justify-between items-center">
-            <h2
-              className="text-xl font-bold text-gray-700 cursor-pointer"
-              onClick={() => toggleSection(key)}
-            >
-              {index + 1} {key} {isOpen[key] ? "▲" : "▼"}
-            </h2>
-            <div className="flex space-x-2">
-              {/* Perplexityで要約を追加ボタン */}
-              <button
-                onClick={() => handleAddPerplexity(key)}
-                className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
-              >
-                Perplexityで要約を追加
-              </button>
-              {/* 再生成ボタン */}
-              <button
-                onClick={() => handleRegenerate(key)}
-                className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
-              >
-                再生成
-              </button>
+        {/* データが取得できた場合 */}
+        {industryData ? (
+          Object.keys(industryData).map((key, index) => (
+            <div key={key} className="mb-6">
+              <div className="flex justify-between items-center">
+                <h2
+                  className="text-xl font-bold text-gray-700 cursor-pointer"
+                  onClick={() => toggleSection(key)}
+                >
+                  {index + 1} {key} {isOpen[key] ? "▲" : "▼"}
+                </h2>
+                <div className="flex space-x-2">
+                  {/* Perplexityで要約を追加ボタン */}
+                  <button
+                    onClick={() => handleAddPerplexity(key)}
+                    className="bg-blue-600 text-white py-1 px-4 rounded-md hover:bg-blue-700"
+                  >
+                    Perplexityで要約を追加
+                  </button>
+                  {/* 再生成ボタン */}
+                  <button
+                    onClick={() => handleRegenerate(key)}
+                    className="bg-gray-700 text-white py-1 px-4 rounded-md hover:bg-gray-800"
+                  >
+                    再生成
+                  </button>
+                </div>
+              </div>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  value={prompts[key]}
+                  onChange={(e) => setPrompts({ ...prompts, [key]: e.target.value })}
+                  className="block w-full p-2 border border-gray-300 rounded-md text-black"
+                />
+              </div>
+              {isOpen[key] && (
+                // --- 変更点②：Markdownレンダラーで内容を表示し、各セクション内で数字リスト番号をリセット --- //
+                <div className="text-base text-gray-800 mt-4" style={{ counterReset: "ol" }}>
+                  <ReactMarkdown>
+                    {formatContent(industryData[key as keyof IndustryData])}
+                  </ReactMarkdown>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="mt-2">
-            <input
-              type="text"
-              value={prompts[key]}
-              onChange={(e) => setPrompts({ ...prompts, [key]: e.target.value })}
-              className="block w-full p-2 border border-gray-300 rounded-md text-black"
-            />
-          </div>
-          {isOpen[key] && (
-            <p className="text-base text-gray-800 mt-4">{industryData[key as keyof IndustryData]}</p>
-          )}
-        </div>
-      ))
-    ) : (
-      // ローディング状態の表示
-      <p className="text-gray-500 text-center">データを取得中...</p>
-    )}
+          ))
+        ) : (
+          // ローディング状態の表示
+          <p className="text-gray-500 text-center">データを取得中...</p>
+        )}
 
         {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
 
