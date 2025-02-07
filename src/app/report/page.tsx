@@ -3,7 +3,7 @@
 import { useCallback, useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown"; // 追加：Markdownレンダリング用
+import ReactMarkdown from "react-markdown"; // Markdownレンダリング用
 
 interface IndustryData {
   現状: string;
@@ -62,17 +62,24 @@ const ReportPageContent = () => {
   const [includePerplexity, setIncludePerplexity] = useState(true);
 
   // --- 変更点①：テキスト整形関数 --- //
+  // この関数は、対象テキスト内の「弱み」の余分な空白を削除するだけでなく、
+  // Markdown の見出し行（# ～ ######）の前に改行を挿入して、
+  // ordered list 番号が前のリストと連続しないようにする処理を行っています。
+  // ※この整形処理は ChatGPT の要約部分（industryData の内容）にのみ適用されます。
   const formatContent = (text: string): string => {
-    return text
+    // まず「弱み」の行頭余分な空白を削除
+    let formatted = text
       .split("\n")
       .map((line) => {
-        // 「弱み」の行頭に余分な空白がある場合は取り除く
         if (/^\s*弱み/.test(line)) {
           return line.trimStart();
         }
         return line;
       })
       .join("\n");
+    // Markdown の見出しの前に空行を追加（例："\n## " の前に改行）してリセットを促す
+    formatted = formatted.replace(/(\n)(#{1,6}\s)/g, "$1\n$2");
+    return formatted;
   };
 
   const handleAddPerplexity = async (key: string) => {
@@ -257,6 +264,18 @@ const ReportPageContent = () => {
     setIsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // --- 変更点②：ReactMarkdown のカスタムコンポーネント --- //
+  // 全ての見出しおよび ordered list に対して左インデントをリセットする
+  const markdownComponents = {
+    h1: ({node, ...props}: any) => <h1 style={{ marginLeft: 0 }} {...props} />,
+    h2: ({node, ...props}: any) => <h2 style={{ marginLeft: 0 }} {...props} />,
+    h3: ({node, ...props}: any) => <h3 style={{ marginLeft: 0 }} {...props} />,
+    h4: ({node, ...props}: any) => <h4 style={{ marginLeft: 0 }} {...props} />,
+    h5: ({node, ...props}: any) => <h5 style={{ marginLeft: 0 }} {...props} />,
+    h6: ({node, ...props}: any) => <h6 style={{ marginLeft: 0 }} {...props} />,
+    ol: ({node, ...props}: any) => <ol style={{ marginLeft: 0 }} {...props} />,
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-12 rounded-lg shadow-md w-2/3">
@@ -271,6 +290,7 @@ const ReportPageContent = () => {
         {/* データが取得できた場合 */}
         {industryData ? (
           Object.keys(industryData).map((key, index) => (
+            // 各セクション全体は同一インデントにするため、外側の div には追加のインデント設定はしていません
             <div key={key} className="mb-6">
               <div className="flex justify-between items-center">
                 <h2
@@ -305,9 +325,9 @@ const ReportPageContent = () => {
                 />
               </div>
               {isOpen[key] && (
-                // --- 変更点②：Markdownレンダラーで内容を表示し、各セクション内で数字リスト番号をリセット --- //
-                <div className="text-base text-gray-800 mt-4" style={{ counterReset: "ol" }}>
-                  <ReactMarkdown>
+                // ChatGPT の要約部分にのみ formatContent とカスタムレンダリングを適用
+                <div className="text-base text-gray-800 mt-4">
+                  <ReactMarkdown components={markdownComponents}>
                     {formatContent(industryData[key as keyof IndustryData])}
                   </ReactMarkdown>
                 </div>
