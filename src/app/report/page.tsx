@@ -43,8 +43,8 @@ const ReportPageContent = () => {
     競合と差別化: `業界の競合情報および${companyName}の差別化要因を教えてください。`,
     Exit先検討: `${companyName}のExit先はどのような相手が有力でしょうか？`,
     バリューアップ施策: `${companyName}のバリューアップ施策をDX関連とその他に分けて教えてください。`,
-    ユースケース: `業界のM&A事例について過去実績、将来の見込みを教えてください。`,
-    SWOT分析: `${companyName}のSWOT分析をお願いします。`,
+    ユースケース: `業界のM&A事例について過去実績、将来の見込みを教えてください。テスト`,
+    SWOT分析: `${companyName}のSWOT分析を番号リスト形式でお願いします。`,
   });
   
   const [revenueCurrent, setRevenueCurrent] = useState<number | null>(null);
