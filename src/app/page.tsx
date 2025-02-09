@@ -50,13 +50,13 @@ interface KeyMapping {
 // ★★【変更点①】★★
 // ChatGPTの出力テキストにMarkdown見出しが付与されていない場合、
 // 特定キーワード（例："強み", "弱み", "機会", "脅威", "SWOT分析", "Strengths", "Weaknesses", "Opportunities", "Threats"）で始まる行に対して
-// 先頭に「### 」を挿入することで、Markdownの見出しとして認識させる前処理関数を追加します。
+// 先頭に「### 」を挿入することで、Markdownの見出しとして認識させる前処理関数を追加
 const preprocessChatGPT = (text: string): string => {
   const headingKeywords = ["強み", "弱み", "機会", "脅威", "SWOT", "SWOT分析", "Strengths", "Weaknesses", "Opportunities", "Threats"];
   const lines = text.split("\n");
   const processedLines = lines.map(line => {
     const trimmed = line.trim();
-    // すでにMarkdown記法で始まっていなければ、特定キーワードで始まる場合は「### 」を挿入
+    // すでにMarkdown記法（#）で始まっていなければ、特定キーワードで始まる場合は「### 」を挿入
     if (!trimmed.startsWith("#")) {
       for (const keyword of headingKeywords) {
         if (trimmed.startsWith(keyword)) {
@@ -226,8 +226,8 @@ const IndexPage = () => {
   };
 
   // ★★【変更点②】★★
-  // ChatGPTの出力テキストに対して、preprocessChatGPT関数を適用してMarkdown見出しを付与する処理を追加します。
-  // ※Perplexityの出力はそのまま利用します。
+  // ChatGPTの出力テキストに対して、preprocessChatGPT関数を適用してMarkdown見出しを付与する処理
+  // ※Perplexityの出力はそのまま利用
   const processChatGPTText = (text: string): string => {
     return preprocessChatGPT(text);
   };
@@ -810,7 +810,10 @@ const IndexPage = () => {
                       <ul className="list-disc pl-5 mb-0" {...props} />
                     ),
                     h3: ({ node, ...props }) => (
-                      <h3 className="font-bold text-xl my-4" {...props} />
+                      // 変更点③:
+                      // ChatGPTの出力でプレプロセスした「見出し」としてのh3は、
+                      // 太字化するがフォントサイズは継承（他のテキストと同一サイズ）するようにスタイルを上書き
+                      <p style={{ fontWeight: "bold", fontSize: "inherit", margin: "1em 0" }} {...props} />
                     ),
                     h4: ({ node, ...props }) => (
                       <h4 className="font-bold text-lg my-4" {...props} />
@@ -862,10 +865,6 @@ const IndexPage = () => {
                 />
               </div>
               {isOpenChatGPT[key] && (
-                // ★★【変更点③】★★
-                // ChatGPTの要約テキストに対して、preprocessChatGPT関数を適用してMarkdown見出しを付与する
-                // その結果、各見出し（例："強み", "弱み" など）がMarkdown見出しとして認識され、
-                // ordered listの番号が各セクションごとにリセットされ、インデントも統一されます。
                 <ReactMarkdown
                   className="markdown-content font-noto-sans-jp text-base text-gray-800 mt-4 pre-wrap"
                   remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -886,7 +885,13 @@ const IndexPage = () => {
                       <ul className="list-disc pl-5 mb-0" {...props} />
                     ),
                     h3: ({ node, ...props }) => (
-                      <h3 className="font-bold text-xl my-4" {...props} />
+                      // 変更点③:
+                      // ChatGPTの出力テキストに対してpreprocessChatGPTを適用して見出しとして処理しているが、
+                      // デザインは太字かつ通常テキストと同一サイズにするように上書き
+                      <p style={{ fontWeight: "bold", fontSize: "inherit", margin: "1em 0" }} {...props} />
+                    ),
+                    h4: ({ node, ...props }) => (
+                      <h4 className="font-bold text-lg my-4" {...props} />
                     ),
                     strong: ({ node, ...props }) => (
                       <strong className="font-bold text-lg" {...props} />
