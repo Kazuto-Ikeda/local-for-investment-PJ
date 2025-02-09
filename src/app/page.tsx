@@ -813,7 +813,7 @@ const IndexPage = () => {
                       // 変更点③:
                       // ChatGPTの出力でプレプロセスした「見出し」としてのh3は、
                       // 太字化するがフォントサイズは継承（他のテキストと同一サイズ）するようにスタイルを上書き
-                      <p style={{ fontWeight: "bold", fontSize: "inherit", margin: "1em 0" }} {...props} />
+                      <p style={{ fontWeight: "normal", fontSize: "inherit", margin: "1em 0" }} {...props} />
                     ),
                     h4: ({ node, ...props }) => (
                       <h4 className="font-bold text-lg my-4" {...props} />
