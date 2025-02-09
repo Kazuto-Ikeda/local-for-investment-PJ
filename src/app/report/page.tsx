@@ -265,15 +265,19 @@ const ReportPageContent = () => {
   };
 
   // --- 変更点②：ReactMarkdown のカスタムコンポーネント --- //
-  // 全ての見出しおよび ordered list に対して左インデントをリセットする
+  // ・見出し (h1～h6) と ordered list (ol) の左インデントをリセット
+  // ・リスト項目 (li) も左インデントを 0 にする
   const markdownComponents = {
-    h1: ({node, ...props}: any) => <h1 style={{ marginLeft: 0 }} {...props} />,
-    h2: ({node, ...props}: any) => <h2 style={{ marginLeft: 0 }} {...props} />,
-    h3: ({node, ...props}: any) => <h3 style={{ marginLeft: 0 }} {...props} />,
-    h4: ({node, ...props}: any) => <h4 style={{ marginLeft: 0 }} {...props} />,
-    h5: ({node, ...props}: any) => <h5 style={{ marginLeft: 0 }} {...props} />,
-    h6: ({node, ...props}: any) => <h6 style={{ marginLeft: 0 }} {...props} />,
-    ol: ({node, ...props}: any) => <ol style={{ marginLeft: 0 }} {...props} />,
+    h1: ({ node, ...props }: any) => <h1 style={{ marginLeft: 0 }} {...props} />,
+    h2: ({ node, ...props }: any) => <h2 style={{ marginLeft: 0 }} {...props} />,
+    h3: ({ node, ...props }: any) => <h3 style={{ marginLeft: 0 }} {...props} />,
+    h4: ({ node, ...props }: any) => <h4 style={{ marginLeft: 0 }} {...props} />,
+    h5: ({ node, ...props }: any) => <h5 style={{ marginLeft: 0 }} {...props} />,
+    h6: ({ node, ...props }: any) => <h6 style={{ marginLeft: 0 }} {...props} />,
+    ol: ({ node, ...props }: any) => (
+      <ol style={{ marginLeft: 0, paddingLeft: 0, listStylePosition: "inside" }} {...props} />
+    ),
+    li: ({ node, ...props }: any) => <li style={{ marginLeft: 0 }} {...props} />,
   };
 
   return (
@@ -325,8 +329,9 @@ const ReportPageContent = () => {
                 />
               </div>
               {isOpen[key] && (
-                // ChatGPT の要約部分にのみ formatContent とカスタムレンダリングを適用
-                <div className="text-base text-gray-800 mt-4">
+                // ChatGPT の要約部分にのみ、formatContent と
+                // ordered list リセット用のスタイル（counterReset: 'ol'）およびカスタムレンダリングを適用
+                <div className="text-base text-gray-800 mt-4" style={{ counterReset: "ol" }}>
                   <ReactMarkdown components={markdownComponents}>
                     {formatContent(industryData[key as keyof IndustryData])}
                   </ReactMarkdown>
